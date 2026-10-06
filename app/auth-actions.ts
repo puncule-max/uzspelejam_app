@@ -60,3 +60,30 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+
+export async function requestPasswordReset(formData: FormData) {
+  const email = requireString(formData.get("email"), "Email");
+  const headerStore = await headers();
+  const origin = headerStore.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const supabase = await createClient();
+  const redirectTo = origin + "/auth/callback?next=" + encodeURIComponent("/update-password");
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) redirect("/forgot-password?error=" + encodeURIComponent(error.message));
+  redirect("/forgot-password?sent=1");
+}
+
+export async function updatePassword(formData: FormData) {
+  const password = requireString(formData.get("password"), "Password");
+  const confirmPassword = requireString(formData.get("confirm_password"), "Password confirmation");
+  if (password.length < 8) redirect("/update-password?error=" + encodeURIComponent("Password must be at least 8 characters."));
+  if (password !== confirmPassword) redirect("/update-password?error=" + encodeURIComponent("Passwords do not match."));
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?message=" + encodeURIComponent("Open the password reset link from your email."));
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) redirect("/update-password?error=" + encodeURIComponent(error.message));
+  await supabase.auth.signOut();
+  redirect("/login?message=" + encodeURIComponent("Password updated. Please sign in."));
+}
