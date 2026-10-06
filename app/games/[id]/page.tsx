@@ -38,6 +38,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
       {conversationId && (actionTypes.has("open_group_chat") || actionTypes.has("message_organizer")) && <Link className="button primary wide" href={`/messages/${conversationId}`}>{actionTypes.has("open_group_chat") ? t.openGroupChat : t.messageOrganizer}</Link>}
       <div className="dual-actions">
         {actionTypes.has("follow") && <form action={followGame}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.follow}</button></form>}
+        {actionTypes.has("edit_follow_preferences") && <Link className="button ghost" href={`/games/${id}/follow`}>{locale==="lv"?"Sekošanas iestatījumi":"Follow settings"}</Link>}
         {actionTypes.has("unfollow") && <form action={unfollowGame}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.unfollow}</button></form>}
         {actionTypes.has("withdraw_application") && <form action={withdrawApplication}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.withdraw}</button></form>}
         {actionTypes.has("leave_waiting_list") && <form action={leaveWaitingList}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.leaveWaiting}</button></form>}
