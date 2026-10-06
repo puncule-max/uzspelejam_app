@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { acceptApplication, declineApplication, promoteWaitingUser } from "@/app/game-actions";
 import { createPrivateInvite } from "@/app/invite-actions";
 import { setPositionRequirement } from "@/app/position-actions";
+import { assignParticipantTeam } from "@/app/team-actions";
 import { getLocale } from "@/lib/i18n";
 
 function first<T>(value:T|T[]|null|undefined):T|null { return Array.isArray(value)?value[0]??null:value??null; }
@@ -25,6 +26,10 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
   const game={...gameRaw,activity};
   if(game.creator_id!==user.id) redirect(`/games/${id}`);
 
+  const teamsPromise=activity?.supports_teams
+    ? supabase.from("game_teams").select("id,name,sort_order,max_players").eq("game_id",id).order("sort_order")
+    : Promise.resolve({data:[]});
+
   const positionsPromise=activity?.supports_positions
     ? supabase.from("positions").select("id,name_lv,name_en,sort_order").eq("activity_id",activity.id).eq("active",true).order("sort_order")
     : Promise.resolve({data:[]});
@@ -32,7 +37,7 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
     ? supabase.from("game_position_requirements").select("position_id,required_count").eq("game_id",id)
     : Promise.resolve({data:[]});
 
-  const [{data:applications},{data:waiting},{data:participants},positionsRes,requirementsRes]=await Promise.all([
+  const [{data:applications},{data:waiting},{data:participants},teamsRes,positionsRes,requirementsRes]=await Promise.all([
     supabase.from("game_applications")
       .select("id,user_id,status,requested_position_id,created_at,profile:profiles!game_applications_user_id_fkey(display_name),requested_position:positions!game_applications_requested_position_id_fkey(id,name_lv,name_en)")
       .eq("game_id",id).eq("status","pending").order("created_at"),
@@ -40,12 +45,14 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
       .select("id,user_id,status,created_at,profile:profiles!game_waiting_list_user_id_fkey(display_name)")
       .eq("game_id",id).eq("status","active").order("created_at"),
     supabase.from("game_participants")
-      .select("id,user_id,status,position_id,profile:profiles!game_participants_user_id_fkey(display_name),position:positions!game_participants_position_id_fkey(id,name_lv,name_en)")
+      .select("id,user_id,status,position_id,team_id,profile:profiles!game_participants_user_id_fkey(display_name),position:positions!game_participants_position_id_fkey(id,name_lv,name_en)")
       .eq("game_id",id).eq("status","accepted"),
+    teamsPromise,
     positionsPromise,
     requirementsPromise
   ] as any);
 
+  const teams:any[]=teamsRes.data??[];
   const positions:any[]=positionsRes.data??[];
   const requirements:any[]=requirementsRes.data??[];
   const requirementMap=new Map(requirements.map((r:any)=>[r.position_id,Number(r.required_count)]));
@@ -90,7 +97,7 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
           <div className="application-actions">
             <form action={acceptApplication} className="inline-form">
               <input type="hidden" name="game_id" value={id}/><input type="hidden" name="application_id" value={a.id}/>
-              {activity?.supports_positions&&<select name="position_id" defaultValue={a.requested_position_id??""}><option value="">{lv?"Bez pozīcijas":"No position"}</option>{positions.map((p:any)=><option key={p.id} value={p.id}>{lv?p.name_lv:p.name_en}</option>)}</select>}
+              {activity?.supports_teams&&<select name="team_id" defaultValue=""><option value="">{lv?"Bez komandas":"No team"}</option>{teams.map((team:any)=><option key={team.id} value={team.id}>{team.name}</option>)}</select>}{activity?.supports_positions&&<select name="position_id" defaultValue={a.requested_position_id??""}><option value="">{lv?"Bez pozīcijas":"No position"}</option>{positions.map((p:any)=><option key={p.id} value={p.id}>{lv?p.name_lv:p.name_en}</option>)}</select>}
               <button className="button primary" disabled={remaining<=0}>{lv?"Apstiprināt":"Accept"}</button>
             </form>
             <form action={declineApplication}><input type="hidden" name="game_id" value={id}/><input type="hidden" name="application_id" value={a.id}/><button className="button ghost">{lv?"Noraidīt":"Decline"}</button></form>
@@ -106,7 +113,7 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
     </div></section>
 
     <section className="panel"><h2>{lv?"Apstiprinātie":"Confirmed"}</h2><div className="stack">
-      {participants?.map((p:any)=>{const profile:any=first(p.profile);const pos:any=first(p.position);return <div className="applicant" key={p.id}><Link href={`/users/${p.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link><span className="hint">{pos?(lv?pos.name_lv:pos.name_en):""}</span></div>})}
+      {participants?.map((p:any)=>{const profile:any=first(p.profile);const pos:any=first(p.position);return <div className="participant-manage" key={p.id}><div><Link href={`/users/${p.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link><span className="hint">{pos?(lv?pos.name_lv:pos.name_en):""}</span></div>{activity?.supports_teams&&<form action={assignParticipantTeam} className="inline-form"><input type="hidden" name="game_id" value={id}/><input type="hidden" name="user_id" value={p.user_id}/><select name="team_id" defaultValue={p.team_id??""}><option value="">{lv?"Bez komandas":"No team"}</option>{teams.map((team:any)=><option key={team.id} value={team.id}>{team.name}</option>)}</select><button className="button ghost" type="submit">{lv?"Saglabāt":"Save"}</button></form>}</div>})}
       {!participants?.length&&<p>{lv?"Vēl nav apstiprinātu spēlētāju.":"No confirmed players yet."}</p>}
     </div></section>
   </div>;

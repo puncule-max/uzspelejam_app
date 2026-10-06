@@ -16,6 +16,10 @@ export async function getGameDetails(id: string) {
         .or(`and(blocker_user_id.eq.${user.id},blocked_user_id.eq.${game.creator_id}),and(blocker_user_id.eq.${game.creator_id},blocked_user_id.eq.${user.id})`)
     : Promise.resolve({ data: [] as Array<{blocker_user_id:string;blocked_user_id:string}> });
 
+  const teamsQuery = game.activity?.supports_teams
+    ? supabase.from("game_teams").select("id,name,sort_order,max_players").eq("game_id",id).order("sort_order")
+    : Promise.resolve({ data: [] });
+
   const positionsQuery = game.activity?.supports_positions
     ? supabase.from("positions").select("id,name_lv,name_en,sort_order").eq("activity_id",game.activity.id).eq("active",true).order("sort_order")
     : Promise.resolve({ data: [] });
@@ -30,7 +34,7 @@ export async function getGameDetails(id: string) {
 
   const [
     { count: acceptedCount }, participantRes, applicationRes, waitingRes, followerRes,
-    waitingPositionRes, blocksRes, positionsRes, requirementsRes, acceptedPositionsRes,
+    waitingPositionRes, blocksRes, teamsRes, positionsRes, requirementsRes, acceptedPositionsRes,
   ] = await Promise.all([
     supabase.from("game_participants").select("id", { count: "exact", head: true }).eq("game_id", id).eq("status", "accepted"),
     user ? supabase.from("game_participants").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
@@ -38,7 +42,7 @@ export async function getGameDetails(id: string) {
     user ? supabase.from("game_waiting_list").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
     user ? supabase.from("game_followers").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
     user ? supabase.rpc("my_waiting_list_position", { p_game_id: id }) : Promise.resolve({ data: null }),
-    blockQuery, positionsQuery, requirementsQuery, acceptedPositionsQuery,
+    blockQuery, teamsQuery, positionsQuery, requirementsQuery, acceptedPositionsQuery,
   ] as any);
 
   const participant = participantRes.data ?? null;
@@ -50,6 +54,7 @@ export async function getGameDetails(id: string) {
   const isBlockedByOrganizer = Boolean(user && blocks.some((b:any) => b.blocker_user_id === game.creator_id && b.blocked_user_id === user.id));
   const hasBlockedOrganizer = Boolean(user && blocks.some((b:any) => b.blocker_user_id === user.id && b.blocked_user_id === game.creator_id));
 
+  const teams = teamsRes.data ?? [];
   const requirementMap = new Map((requirementsRes.data ?? []).map((r:any)=>[r.position_id,Number(r.required_count)]));
   const acceptedByPosition = new Map<string,number>();
   for (const p of acceptedPositionsRes.data ?? []) {
@@ -102,5 +107,5 @@ export async function getGameDetails(id: string) {
     conversationId = conversation?.id ?? null;
   }
 
-  return { game, user, participant, application, waiting, follower, access, acceptedCount: acceptedCount ?? 0, conversationId, positionOptions, organizerProfile };
+  return { game, user, participant, application, waiting, follower, access, acceptedCount: acceptedCount ?? 0, conversationId, positionOptions, organizerProfile, teams };
 }

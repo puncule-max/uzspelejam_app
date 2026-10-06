@@ -136,7 +136,8 @@ export async function acceptApplication(formData: FormData) {
   const gameId = required(formData.get("game_id"), "Game");
   const applicationId = required(formData.get("application_id"), "Application");
   const positionId = asString(formData.get("position_id")) || null;
-  const { error } = await supabase.rpc("accept_application", { p_application_id: applicationId, p_team_id: null, p_position_id: positionId });
+  const teamId = asString(formData.get("team_id")) || null;
+  const { error } = await supabase.rpc("accept_application", { p_application_id: applicationId, p_team_id: teamId, p_position_id: positionId });
   if (error) redirect(`/games/${gameId}/manage?error=${encodeURIComponent(error.message)}`);
   revalidatePath(`/games/${gameId}`); revalidatePath(`/games/${gameId}/manage`); revalidatePath("/my-games");
 }
