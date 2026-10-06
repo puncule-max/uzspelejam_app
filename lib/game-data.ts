@@ -6,7 +6,7 @@ export async function getGameDetails(id: string) {
   const { data: { user } } = await supabase.auth.getUser();
   const { data: game, error } = await supabase
     .from("games")
-    .select("*, activity:activities(id,code,name_lv,name_en,participation_type,play_mode,supports_teams,supports_positions), venue:venues(id,name,city,address)")
+    .select("*, activity:activities(id,code,name_lv,name_en,participation_type,play_mode,supports_teams,supports_positions), venue:venues(id,name,city,address), organizer:profiles!games_creator_id_fkey(id,display_name,avatar_url,rating_average,rating_count)")
     .eq("id", id)
     .single();
   if (error || !game) return null;

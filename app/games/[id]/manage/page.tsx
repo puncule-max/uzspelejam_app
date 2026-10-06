@@ -34,13 +34,13 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
 
   const [{data:applications},{data:waiting},{data:participants},positionsRes,requirementsRes]=await Promise.all([
     supabase.from("game_applications")
-      .select("id,user_id,status,requested_position_id,created_at,profile:profiles!game_applications_user_id_fkey(display_name,city),requested_position:positions!game_applications_requested_position_id_fkey(id,name_lv,name_en)")
+      .select("id,user_id,status,requested_position_id,created_at,profile:profiles!game_applications_user_id_fkey(display_name),requested_position:positions!game_applications_requested_position_id_fkey(id,name_lv,name_en)")
       .eq("game_id",id).eq("status","pending").order("created_at"),
     supabase.from("game_waiting_list")
-      .select("id,user_id,status,created_at,profile:profiles!game_waiting_list_user_id_fkey(display_name,city)")
+      .select("id,user_id,status,created_at,profile:profiles!game_waiting_list_user_id_fkey(display_name)")
       .eq("game_id",id).eq("status","active").order("created_at"),
     supabase.from("game_participants")
-      .select("id,user_id,status,position_id,profile:profiles!game_participants_user_id_fkey(display_name,city),position:positions!game_participants_position_id_fkey(id,name_lv,name_en)")
+      .select("id,user_id,status,position_id,profile:profiles!game_participants_user_id_fkey(display_name),position:positions!game_participants_position_id_fkey(id,name_lv,name_en)")
       .eq("game_id",id).eq("status","accepted"),
     positionsPromise,
     requirementsPromise
@@ -86,7 +86,7 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
       {applications?.map((a:any)=>{
         const profile:any=first(a.profile); const requested:any=first(a.requested_position);
         return <article className="applicant" key={a.id}>
-          <div><strong>{profile?.display_name??"Player"}</strong><p>{profile?.city||""}</p>{requested&&<p className="hint">{lv?"Vēlas":"Prefers"}: {lv?requested.name_lv:requested.name_en}</p>}</div>
+          <div><Link href={`/users/${a.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link>{requested&&<p className="hint">{lv?"Vēlas":"Prefers"}: {lv?requested.name_lv:requested.name_en}</p>}</div>
           <div className="application-actions">
             <form action={acceptApplication} className="inline-form">
               <input type="hidden" name="game_id" value={id}/><input type="hidden" name="application_id" value={a.id}/>
@@ -101,12 +101,12 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
     </div></section>
 
     <section className="panel"><h2>{lv?"Gaidīšanas saraksts":"Waiting list"}</h2><div className="stack">
-      {waiting?.map((w:any,index:number)=>{const profile:any=first(w.profile);return <article className="applicant" key={w.id}><div><strong>#{index+1} · {profile?.display_name??"Player"}</strong></div><form action={promoteWaitingUser}><input type="hidden" name="game_id" value={id}/><input type="hidden" name="waiting_id" value={w.id}/><button className="button primary" disabled={remaining<=0}>{lv?"Pievienot spēlei":"Accept into game"}</button></form></article>})}
+      {waiting?.map((w:any,index:number)=>{const profile:any=first(w.profile);return <article className="applicant" key={w.id}><div><Link href={`/users/${w.user_id}`}><strong>#{index+1} · {profile?.display_name??"Player"}</strong></Link></div><form action={promoteWaitingUser}><input type="hidden" name="game_id" value={id}/><input type="hidden" name="waiting_id" value={w.id}/><button className="button primary" disabled={remaining<=0}>{lv?"Pievienot spēlei":"Accept into game"}</button></form></article>})}
       {!waiting?.length&&<p>{lv?"Neviens negaida.":"No one is waiting."}</p>}
     </div></section>
 
     <section className="panel"><h2>{lv?"Apstiprinātie":"Confirmed"}</h2><div className="stack">
-      {participants?.map((p:any)=>{const profile:any=first(p.profile);const pos:any=first(p.position);return <div className="applicant" key={p.id}><strong>{profile?.display_name??"Player"}</strong><span className="hint">{pos?(lv?pos.name_lv:pos.name_en):""}</span></div>})}
+      {participants?.map((p:any)=>{const profile:any=first(p.profile);const pos:any=first(p.position);return <div className="applicant" key={p.id}><Link href={`/users/${a.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link><span className="hint">{pos?(lv?pos.name_lv:pos.name_en):""}</span></div>})}
       {!participants?.length&&<p>{lv?"Vēl nav apstiprinātu spēlētāju.":"No confirmed players yet."}</p>}
     </div></section>
   </div>;
