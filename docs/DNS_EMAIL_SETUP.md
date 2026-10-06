@@ -1,6 +1,6 @@
 # uzspelejam.lv — DNS un e-pastu konfigurācija
 
-Stāvoklis 2026-10-06: domēns pievienots esošajam Vercel produkcijas projektam un Resend kontam. NIC reģistrācija/DNS ievade vēl jāapstiprina. Vercel panelis rāda `Invalid Configuration`; Resend domēna verifikācija vēl nav pabeigta. Zemāk ir konkrētajam projektam panelī nolasītās vērtības, nevis dokumentācijas piemēri.
+Stāvoklis 2026-10-06: visi pieci DNS ieraksti saglabāti NIC panelī un pārbaudīti lietotāja ekrānattēlā. Resend rāda `Verified` domēnam `uzspelejam.lv`. Supabase produkcijas projektā ieslēgts un saglabāts custom SMTP; pēc lapas pārlādes un konfigurācijas ielādes atkārtoti pārbaudīts ieslēgts slēdzis un saglabāta parole. Vercel domēna HTTPS/certifikāta pārbaude un īstu e-pastu piegādes pārbaude vēl jāveic. Zemāk ir konkrētajam projektam panelī nolasītās vērtības, nevis dokumentācijas piemēri.
 
 ## DNS ieraksti NIC panelim
 
@@ -14,7 +14,7 @@ Saglabā pašreizējo DNS pārvaldnieku. Nav nepieciešams mainīt domēna names
 | CNAME | send.uzspelejam.lv | send.forge.rmta.net | Resend sūtīšanas apakšdomēns |
 | TXT | _dmarc.uzspelejam.lv | v=DMARC1; p=none; | Sākotnējā DMARC politika |
 
-TTL: NIC noklusējuma vērtība. Ja NIC ievades lauks automātiski pievieno `.uzspelejam.lv`, norādi tikai `resend._domainkey`, `rsend`, `send` un `_dmarc`. Vercel pamatdomēna nosaukums tā panelī ir `@`; NIC laukā izmanto atbilstošo pamatdomēna apzīmējumu. Nepievieno domēna nosaukumu divreiz.
+TTL: NIC noklusējuma vērtība. Šajā NIC formā Hostname/Alias laukos ievadīti tabulā redzamie pilnie domēna nosaukumi; A ierakstam izmantots `uzspelejam.lv`, nevis `@`.
 
 DKIM TXT vērtība — kopē visu vienā rindā:
 
@@ -29,6 +29,10 @@ p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCoRhqK9hHuZHhlkPRhjvFh+rBGopk44h6lvwn8bA
 Saglabāts Ireland (`eu-west-1`). Tas nosaka e-pastu sūtīšanas serveru reģionu, nevis aplikācijas darbības valsti. Reģiona izvēle pati par sevi nenozīmē, ka visi Resend konta dati glabājas ES: pakalpojuma dokumentācijā konta metadatu, žurnālu un API ierakstu glabāšana norādīta ASV.
 
 ## Pēc DNS ievades
+
+Pabeigts: DNS ievade, Resend domēna verifikācija un Supabase SMTP pieslēgums. Aktīvajai API atslēgai `Uzspelejam Supabase SMTP` piešķirta `Sending access` tikai domēnam `uzspelejam.lv`. Sākotnējā neizmantotā atslēga atsaukta; atstāta viena aktīva atslēga. Slepenā vērtība nav saglabāta repozitorijā.
+
+SMTP iestatījumi: `smtp.resend.com:465`, lietotājs `resend`, sūtītājs `Uzspēlējam? <no-reply@uzspelejam.lv>`, minimālais intervāls vienam lietotājam 60 sekundes. Piegāde un pilna Auth darbplūsma vēl nav apstiprināta. Pēc lapas pārlādes jāsagaida konfigurācijas ielāde: sākotnējais izslēgtais slēdzis pats par sevi nepierāda, ka saglabāšana neizdevās.
 
 1. Pārbaudi publisko DNS un Vercel domēna statusu/certifikātu.
 2. Resend domēna lapā izvēlies `I've added the records` un sagaidi verifikāciju. E-pastu saņemšanas funkcija nav ieslēgta; šī konfigurācija paredzēta aplikācijas sūtījumiem.
