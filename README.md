@@ -33,6 +33,7 @@ Implemented:
 - Share CTA for public games
 - central `GameAccessContext` resolver and domain tests
 - Row Level Security, isolated chat RLS and explicit transactional RPC commands for critical state changes
+- profile aggregate fields are database-controlled; client profile writes are column-restricted
 - production deployment on Vercel
 
 ## Stack
