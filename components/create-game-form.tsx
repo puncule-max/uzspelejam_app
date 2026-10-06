@@ -18,7 +18,7 @@ export function CreateGameForm({
   locale,activities,positions,labels
 }:{locale:"lv"|"en";activities:Activity[];positions:Position[];labels:Labels}) {
   const first=activities[0]??null;
-  const initialMode:first extends never ? never : "physical"|"online" = first?.play_mode==="online"?"online":"physical";
+  const initialMode: "physical"|"online" = first?.play_mode==="online"?"online":"physical";
   const [activityId,setActivityId]=useState(first?.id??"");
   const [mode,setMode]=useState<"physical"|"online">(initialMode);
   const [playersNeeded,setPlayersNeeded]=useState(1);
