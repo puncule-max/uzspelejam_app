@@ -37,6 +37,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
       {access.userGameState === "accepted" && <div className="status-box success"><strong>{t.youreIn}</strong></div>}
       {access.userGameState === "organizer" && <Link className="button primary wide" href={`/games/${id}/manage`}>{t.manageGame}</Link>}
       {conversationId && (actionTypes.has("open_group_chat") || actionTypes.has("message_organizer")) && <Link className="button primary wide" href={`/messages/${conversationId}`}>{actionTypes.has("open_group_chat") ? t.openGroupChat : t.messageOrganizer}</Link>}
+      {actionTypes.has("rate_players") && <Link className="button primary wide" href={`/games/${id}/rate`}>{locale==="lv"?"Novērtēt spēlētājus":"Rate players"}</Link>}
       <div className="dual-actions">
         {actionTypes.has("follow") && <form action={followGame}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.follow}</button></form>}
         {actionTypes.has("edit_follow_preferences") && <Link className="button ghost" href={`/games/${id}/follow`}>{locale==="lv"?"Sekošanas iestatījumi":"Follow settings"}</Link>}
