@@ -24,26 +24,22 @@ export async function getGameDetails(id: string) {
     ? supabase.from("positions").select("id,name_lv,name_en,sort_order").eq("activity_id",game.activity.id).eq("active",true).order("sort_order")
     : Promise.resolve({ data: [] });
 
-  const requirementsQuery = game.activity?.supports_positions
-    ? supabase.from("game_position_requirements").select("position_id,required_count").eq("game_id",id)
-    : Promise.resolve({ data: [] });
-
-  const acceptedPositionsQuery = game.activity?.supports_positions
-    ? supabase.from("game_participants").select("position_id").eq("game_id",id).eq("status","accepted")
-    : Promise.resolve({ data: [] });
-
   const [
-    { count: acceptedCount }, participantRes, applicationRes, waitingRes, followerRes,
-    waitingPositionRes, blocksRes, teamsRes, positionsRes, requirementsRes, acceptedPositionsRes,
+    capacityRes, participantRes, applicationRes, waitingRes, followerRes,
+    waitingPositionRes, blocksRes, teamsRes, positionsRes,
   ] = await Promise.all([
-    supabase.from("game_participants").select("id", { count: "exact", head: true }).eq("game_id", id).eq("status", "accepted"),
+    supabase.rpc("get_game_capacity", { p_game_id: id }),
     user ? supabase.from("game_participants").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
     user ? supabase.from("game_applications").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
     user ? supabase.from("game_waiting_list").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
     user ? supabase.from("game_followers").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
     user ? supabase.rpc("my_waiting_list_position", { p_game_id: id }) : Promise.resolve({ data: null }),
-    blockQuery, teamsQuery, positionsQuery, requirementsQuery, acceptedPositionsQuery,
+    blockQuery, teamsQuery, positionsQuery,
   ] as any);
+
+  const capacity = capacityRes.data?.[0];
+  if (capacityRes.error || !capacity) throw new Error("Game capacity could not be loaded.");
+  const acceptedCount = Number(capacity.accepted_players_count);
 
   const participant = participantRes.data ?? null;
   const application = applicationRes.data ?? null;
@@ -55,12 +51,9 @@ export async function getGameDetails(id: string) {
   const hasBlockedOrganizer = Boolean(user && blocks.some((b:any) => b.blocker_user_id === user.id && b.blocked_user_id === game.creator_id));
 
   const teams = teamsRes.data ?? [];
-  const requirementMap = new Map((requirementsRes.data ?? []).map((r:any)=>[r.position_id,Number(r.required_count)]));
-  const acceptedByPosition = new Map<string,number>();
-  for (const p of acceptedPositionsRes.data ?? []) {
-    if (!p.position_id) continue;
-    acceptedByPosition.set(p.position_id,(acceptedByPosition.get(p.position_id)??0)+1);
-  }
+  const capacityPositions = capacity.position_counts ?? [];
+  const requirementMap = new Map(capacityPositions.map((r:any)=>[r.position_id,Number(r.required_count)]));
+  const acceptedByPosition = new Map(capacityPositions.map((r:any)=>[r.position_id,Number(r.accepted_count)]));
   const positionOptions = (positionsRes.data ?? []).map((p:any)=>{
     const required=Number(requirementMap.get(p.id)??0);
     const accepted=Number(acceptedByPosition.get(p.id)??0);

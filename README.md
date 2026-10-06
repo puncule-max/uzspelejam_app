@@ -49,10 +49,15 @@ Copy `.env.example` to `.env.local` and fill the Supabase URL and publishable ke
 ```bash
 npm ci
 npm run test:domain
+npm run test:auth
 npm run typecheck
 npm run build
 npm run dev
 ```
+
+CI uses the committed lockfile and checks domain tests, authentication tests, TypeScript and the production build. After deployment, run `npm run test:production -- https://YOUR_PRODUCTION_HOST` for HTTP rendering, guest route guards, callback redirect safety and invalid signup input.
+
+`supabase/tests/production_smoke.sql` verifies profile creation, age/teen rules, profile write privileges, private invites, join/accept, capacity (including guests), waiting-list promotion, chat RLS, cancellation, ratings and notification read state using the actual `authenticated`/`anon` roles. Run it through an administrative SQL connection. It rolls back every fixture and write and does not send emails.
 
 ## Database
 
@@ -63,6 +68,10 @@ Capacity-sensitive operations lock the game row. Critical writes (accept, promot
 ## Production configuration
 
 For production email confirmation/password recovery, Supabase Auth must allow the production callback URL and production-grade SMTP should be configured. In-app notifications are implemented. Native/browser push delivery is intentionally separate from the core web MVP and requires push-provider credentials.
+
+Public production URL: https://uzspelejam-app-prod.vercel.app
+
+Email signup is enabled and email confirmation is required. Actual confirmation/recovery email delivery and SMTP/redirect allowlist settings still need a mailbox-backed check; HTTP and transactional database smoke tests do not verify that external delivery boundary.
 
 ## Brand
 

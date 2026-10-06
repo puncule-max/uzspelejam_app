@@ -8,6 +8,7 @@
     "start": "next start",
     "test:domain": "node --import tsx lib/domain.test.ts",
     "test:auth": "node --import tsx lib/auth-navigation.test.ts",
+    "test:production": "node scripts/production-smoke.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

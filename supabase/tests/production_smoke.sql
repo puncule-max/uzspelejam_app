@@ -91,6 +91,18 @@ begin
   perform set_config('request.jwt.claim.sub',organizer::text,true);
   perform public.accept_application(application);
 
+  execute 'reset role';
+  perform set_config('request.jwt.claim.sub','',true);
+  execute 'set local role anon';
+  if (select accepted_players_count from public.get_game_capacity(game)) <> 1 then
+    raise exception 'Guest capacity summary is incorrect';
+  end if;
+  if exists(select 1 from public.get_game_capacity(private_game)) then
+    raise exception 'Guest can read private game capacity';
+  end if;
+  execute 'reset role';
+  execute 'set local role authenticated';
+
   perform set_config('request.jwt.claim.sub',waiter::text,true);
   if exists(select 1 from public.messages where conversation_id=conversation) then
     raise exception 'Outsider can read application messages';
