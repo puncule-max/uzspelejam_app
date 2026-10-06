@@ -12,7 +12,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
   const error = typeof sp.error === "string" ? sp.error : null;
   const data = await getGameDetails(id);
   if (!data) notFound();
-  const { game, user, access, acceptedCount } = data;
+  const { game, user, access, acceptedCount, conversationId } = data;
   if (!access.permissions.canViewGame) notFound();
   const activity = game.activity?.name_en ?? "Game";
   const location = game.mode === "online" ? `Online · ${game.online_platform}` : [game.custom_location, game.city].filter(Boolean).join(" · ");
@@ -32,6 +32,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
       {access.userGameState === "waiting_list" && <div className="status-box"><strong>You’re on the waiting list</strong><span>We’ll keep your place in the queue.</span></div>}
       {access.userGameState === "accepted" && <div className="status-box success"><strong>You’re in.</strong><span>This game is confirmed for you.</span></div>}
       {access.userGameState === "organizer" && <Link className="button primary wide" href={`/games/${id}/manage`}>Manage game</Link>}
+      {conversationId && (actionTypes.has("open_group_chat") || actionTypes.has("message_organizer")) && <Link className="button primary wide" href={`/messages/${conversationId}`}>{actionTypes.has("open_group_chat") ? "Open group chat" : "Message organizer"}</Link>}
       <div className="dual-actions">
         {actionTypes.has("follow") && <form action={followGame}><HiddenGame id={id}/><button className="button ghost" type="submit">Follow</button></form>}
         {actionTypes.has("unfollow") && <form action={unfollowGame}><HiddenGame id={id}/><button className="button ghost" type="submit">Following · Unfollow</button></form>}

@@ -51,5 +51,27 @@ export async function getGameDetails(id: string) {
     assignedPositionId: participant?.position_id ?? null,
   };
 
-  return { game, user, participant, application, waiting, follower, access: resolveGameAccessContext(ctx), acceptedCount: acceptedCount ?? 0 };
+  const access = resolveGameAccessContext(ctx);
+  let conversationId: string | null = null;
+
+  if (user && (access.userGameState === "accepted" || access.userGameState === "organizer")) {
+    const { data: conversation } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("game_id",id)
+      .eq("type","group")
+      .maybeSingle();
+    conversationId = conversation?.id ?? null;
+  } else if (user && access.userGameState === "pending") {
+    const { data: conversation } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("game_id",id)
+      .eq("type","application")
+      .eq("applicant_user_id",user.id)
+      .maybeSingle();
+    conversationId = conversation?.id ?? null;
+  }
+
+  return { game, user, participant, application, waiting, follower, access, acceptedCount: acceptedCount ?? 0, conversationId };
 }
