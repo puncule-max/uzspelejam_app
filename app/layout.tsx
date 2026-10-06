@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { BottomNav } from "@/components/bottom-nav";
 import { getLocale } from "@/lib/i18n";
+import { NotificationToasts } from "@/components/notification-toasts";
 
 export const metadata: Metadata = {
   title: "Uzspēlējam?",
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
-  return <html lang={locale}><body><main className="app-shell">{children}</main><BottomNav /></body></html>;
+  return <html lang={locale}><body><main className="app-shell">{children}</main><NotificationToasts locale={locale}/><BottomNav /></body></html>;
 }

@@ -56,6 +56,7 @@ export default async function ExplorePage({searchParams}:{searchParams:Promise<S
     {key:"today",label:t.today,href:buildUrl(params,{quick:quick==="today"?null:"today"})},
     {key:"tomorrow",label:t.tomorrow,href:buildUrl(params,{quick:quick==="tomorrow"?null:"tomorrow"})},
     {key:"week",label:t.thisWeek,href:buildUrl(params,{quick:quick==="week"?null:"week"})},
+    {key:"weekend",label:lv?"Šajā nedēļas nogalē":"This weekend",href:buildUrl(params,{quick:quick==="weekend"?null:"weekend"})},
     {key:"online",label:t.online,href:buildUrl(params,{mode:mode==="online"?null:"online"})},
     {key:"open",label:t.openSpots,href:buildUrl(params,{open:openOnly?null:"1"})},
   ];
@@ -88,7 +89,7 @@ export default async function ExplorePage({searchParams}:{searchParams:Promise<S
       </details>
     </form>
 
-    <div className="chips">{quickFilters.map(f=>{const active=(f.key==="today"&&quick==="today")||(f.key==="tomorrow"&&quick==="tomorrow")||(f.key==="week"&&quick==="week")||(f.key==="online"&&mode==="online")||(f.key==="open"&&openOnly);return <Link className={`chip ${active?"active":""}`} href={f.href} key={f.key}>{f.label}</Link>;})}</div>
+    <div className="chips">{quickFilters.map(f=>{const active=(f.key==="today"&&quick==="today")||(f.key==="tomorrow"&&quick==="tomorrow")||(f.key==="week"&&quick==="week")||(f.key==="weekend"&&quick==="weekend")||(f.key==="online"&&mode==="online")||(f.key==="open"&&openOnly);return <Link className={`chip ${active?"active":""}`} href={f.href} key={f.key}>{f.label}</Link>;})}</div>
 
     <div className="section-heading"><h2>{t.games}</h2><span>{games.length}</span></div>
     <div className="card-list">
