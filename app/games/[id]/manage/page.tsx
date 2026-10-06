@@ -6,6 +6,7 @@ import { createPrivateInvite } from "@/app/invite-actions";
 import { setPositionRequirement } from "@/app/position-actions";
 import { assignParticipantTeam } from "@/app/team-actions";
 import { getLocale } from "@/lib/i18n";
+import { cancelGame } from "@/app/game-admin-actions";
 
 function first<T>(value:T|T[]|null|undefined):T|null { return Array.isArray(value)?value[0]??null:value??null; }
 
@@ -19,7 +20,7 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
   if(!user) redirect(`/login?next=/games/${id}/manage`);
 
   const {data:gameRaw}=await supabase.from("games")
-    .select("id,creator_id,visibility,additional_players_required,activity:activities(id,name_lv,name_en,supports_positions)")
+    .select("id,creator_id,visibility,additional_players_required,cancelled_at,activity:activities(id,name_lv,name_en,supports_positions,supports_teams)")
     .eq("id",id).single();
   if(!gameRaw) notFound();
   const activity:any=first(gameRaw.activity);
@@ -65,6 +66,8 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
     <p className="eyebrow">{lv?"Organizators":"Organizer"}</p>
     <h1>{lv?"Pārvaldīt":"Manage"} {lv?(activity?.name_lv??"spēli"):(activity?.name_en??"game")}</h1>
     {error&&<p className="notice error">{error}</p>}
+    {game.cancelled_at&&<p className="notice error">{lv?"Spēle ir atcelta.":"Game is cancelled."}</p>}
+    {!game.cancelled_at&&<div className="hero-actions"><Link className="button ghost" href={`/games/${id}/edit`}>{lv?"Rediģēt spēli":"Edit game"}</Link></div>}
 
     {game.visibility==="private"&&<section className="panel">
       <h2>{lv?"Privātā ielūguma saite":"Private invite link"}</h2>
@@ -111,6 +114,17 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
       {waiting?.map((w:any,index:number)=>{const profile:any=first(w.profile);return <article className="applicant" key={w.id}><div><Link href={`/users/${w.user_id}`}><strong>#{index+1} · {profile?.display_name??"Player"}</strong></Link></div><form action={promoteWaitingUser}><input type="hidden" name="game_id" value={id}/><input type="hidden" name="waiting_id" value={w.id}/><button className="button primary" disabled={remaining<=0}>{lv?"Pievienot spēlei":"Accept into game"}</button></form></article>})}
       {!waiting?.length&&<p>{lv?"Neviens negaida.":"No one is waiting."}</p>}
     </div></section>
+
+    <section className="panel"><h2>{lv?"Spēles atcelšana":"Cancel game"}</h2>
+      <details>
+        <summary>{lv?"Atcelt šo spēli":"Cancel this game"}</summary>
+        <form action={cancelGame} className="wizard">
+          <input type="hidden" name="game_id" value={id}/>
+          <label>{lv?"Iemesls (neobligāts)":"Reason (optional)"}<textarea name="reason" rows={3} maxLength={1000}/></label>
+          <button className="button danger wide" type="submit" disabled={Boolean(game.cancelled_at)}>{lv?"Atcelt spēli":"Cancel game"}</button>
+        </form>
+      </details>
+    </section>
 
     <section className="panel"><h2>{lv?"Apstiprinātie":"Confirmed"}</h2><div className="stack">
       {participants?.map((p:any)=>{const profile:any=first(p.profile);const pos:any=first(p.position);return <div className="participant-manage" key={p.id}><div><Link href={`/users/${p.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link><span className="hint">{pos?(lv?pos.name_lv:pos.name_en):""}</span></div>{activity?.supports_teams&&<form action={assignParticipantTeam} className="inline-form"><input type="hidden" name="game_id" value={id}/><input type="hidden" name="user_id" value={p.user_id}/><select name="team_id" defaultValue={p.team_id??""}><option value="">{lv?"Bez komandas":"No team"}</option>{teams.map((team:any)=><option key={team.id} value={team.id}>{team.name}</option>)}</select><button className="button ghost" type="submit">{lv?"Saglabāt":"Save"}</button></form>}</div>})}
