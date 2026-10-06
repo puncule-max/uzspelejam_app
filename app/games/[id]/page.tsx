@@ -6,6 +6,7 @@ import { getDictionary, getLocale } from "@/lib/i18n";
 import { joinGame, joinWaitingList, withdrawApplication, leaveWaitingList, leaveGame, followGame, unfollowGame } from "@/app/game-actions";
 import { reportGame, blockUser } from "@/app/safety-actions";
 import { ShareButton } from "@/components/share-button";
+import { openOrganizerConversation } from "@/app/message-actions";
 import { Avatar } from "@/components/avatar";
 
 function HiddenGame({ id }: { id: string }) { return <input type="hidden" name="game_id" value={id} />; }
@@ -40,7 +41,8 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
       {access.userGameState === "waiting_list" && <div className="status-box"><strong>{t.waitingStatus}</strong>{access.waitingListPosition && <span>{locale==="lv" ? `Tava vieta: #${access.waitingListPosition}` : `Your position: #${access.waitingListPosition}`}</span>}</div>}
       {access.userGameState === "accepted" && <div className="status-box success"><strong>{t.youreIn}</strong></div>}
       {access.userGameState === "organizer" && <Link className="button primary wide" href={`/games/${id}/manage`}>{t.manageGame}</Link>}
-      {conversationId && (actionTypes.has("open_group_chat") || actionTypes.has("message_organizer")) && <Link className="button primary wide" href={`/messages/${conversationId}`}>{actionTypes.has("open_group_chat") ? t.openGroupChat : t.messageOrganizer}</Link>}
+      {conversationId && actionTypes.has("open_group_chat") && <Link className="button primary wide" href={`/messages/${conversationId}`}>{t.openGroupChat}</Link>}
+      {actionTypes.has("message_organizer") && <form action={openOrganizerConversation}><HiddenGame id={id}/><button className="button ghost wide" type="submit">{t.messageOrganizer}</button></form>}
       {actionTypes.has("rate_players") && <Link className="button primary wide" href={`/games/${id}/rate`}>{locale==="lv"?"Novērtēt spēlētājus":"Rate players"}</Link>}
       <div className="dual-actions">
         {actionTypes.has("follow") && <form action={followGame}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.follow}</button></form>}

@@ -22,7 +22,7 @@ Implemented:
 - Follow / Unfollow with configurable notification triggers
 - game edit/cancel with participant/follower change notifications and custom cancellation windows
 - participant leave/remove with capacity reopening notifications and late-cancellation tracking
-- application chat and accepted-player group chat
+- game-context-only organizer messaging, application chat and accepted-player group chat
 - My Games states: hosting, joined, pending, waiting, following, past
 - in-app Notification Center with unread/read state and Realtime toast updates
 - public/private user profiles, avatar upload and reputation
@@ -31,7 +31,7 @@ Implemented:
 - total and per-player cost display with organizer cost split
 - Share CTA for public games
 - central `GameAccessContext` resolver and domain tests
-- Row Level Security and explicit transactional RPC commands for critical state changes
+- Row Level Security, isolated chat RLS and explicit transactional RPC commands for critical state changes
 - production deployment on Vercel
 
 ## Stack

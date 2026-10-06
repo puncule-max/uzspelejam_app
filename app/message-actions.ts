@@ -23,3 +23,17 @@ export async function sendMessage(formData: FormData) {
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/messages");
 }
+
+
+export async function openOrganizerConversation(formData: FormData) {
+  const gameId = String(formData.get("game_id") ?? "").trim();
+  if (!gameId) return;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/games/" + gameId);
+
+  const { data, error } = await supabase.rpc("ensure_organizer_conversation", { p_game_id: gameId });
+  if (error) redirect("/games/" + gameId + "?error=" + encodeURIComponent(error.message));
+  redirect("/messages/" + data);
+}
