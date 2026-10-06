@@ -32,7 +32,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
       {actionTypes.has("join") && <form action={joinGame}><HiddenGame id={id}/><button className="button primary wide" type="submit">{t.join}</button></form>}
       {actionTypes.has("join_waiting_list") && <form action={joinWaitingList}><HiddenGame id={id}/><button className="button primary wide" type="submit">{t.joinWaitingList}</button></form>}
       {access.userGameState === "pending" && <div className="status-box"><strong>{t.requestPending}</strong></div>}
-      {access.userGameState === "waiting_list" && <div className="status-box"><strong>{t.waitingStatus}</strong></div>}
+      {access.userGameState === "waiting_list" && <div className="status-box"><strong>{t.waitingStatus}</strong>{access.waitingListPosition && <span>{locale==="lv" ? `Tava vieta: #${access.waitingListPosition}` : `Your position: #${access.waitingListPosition}`}</span>}</div>}
       {access.userGameState === "accepted" && <div className="status-box success"><strong>{t.youreIn}</strong></div>}
       {access.userGameState === "organizer" && <Link className="button primary wide" href={`/games/${id}/manage`}>{t.manageGame}</Link>}
       {conversationId && (actionTypes.has("open_group_chat") || actionTypes.has("message_organizer")) && <Link className="button primary wide" href={`/messages/${conversationId}`}>{actionTypes.has("open_group_chat") ? t.openGroupChat : t.messageOrganizer}</Link>}

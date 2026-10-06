@@ -11,18 +11,39 @@ export async function getGameDetails(id: string) {
     .single();
   if (error || !game) return null;
 
-  const [{ count: acceptedCount }, participantRes, applicationRes, waitingRes, followerRes] = await Promise.all([
+  const blockQuery = user
+    ? supabase
+        .from("blocks")
+        .select("blocker_user_id,blocked_user_id")
+        .or(`and(blocker_user_id.eq.${user.id},blocked_user_id.eq.${game.creator_id}),and(blocker_user_id.eq.${game.creator_id},blocked_user_id.eq.${user.id})`)
+    : Promise.resolve({ data: [] as Array<{blocker_user_id:string;blocked_user_id:string}> });
+
+  const [
+    { count: acceptedCount },
+    participantRes,
+    applicationRes,
+    waitingRes,
+    followerRes,
+    waitingPositionRes,
+    blocksRes,
+  ] = await Promise.all([
     supabase.from("game_participants").select("id", { count: "exact", head: true }).eq("game_id", id).eq("status", "accepted"),
     user ? supabase.from("game_participants").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
     user ? supabase.from("game_applications").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
     user ? supabase.from("game_waiting_list").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
     user ? supabase.from("game_followers").select("*").eq("game_id", id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
+    user ? supabase.rpc("my_waiting_list_position", { p_game_id: id }) : Promise.resolve({ data: null }),
+    blockQuery,
   ] as any);
 
   const participant = participantRes.data ?? null;
   const application = applicationRes.data ?? null;
   const waiting = waitingRes.data ?? null;
   const follower = followerRes.data ?? null;
+  const blocks = blocksRes.data ?? [];
+
+  const isBlockedByOrganizer = Boolean(user && blocks.some((b:any) => b.blocker_user_id === game.creator_id && b.blocked_user_id === user.id));
+  const hasBlockedOrganizer = Boolean(user && blocks.some((b:any) => b.blocker_user_id === user.id && b.blocked_user_id === game.creator_id));
 
   const ctx: DomainContext = {
     now: new Date(),
@@ -41,11 +62,11 @@ export async function getGameDetails(id: string) {
     participantStatus: participant?.status ?? null,
     applicationStatus: application?.status ?? null,
     waitingStatus: waiting?.status ?? null,
-    waitingListPosition: null,
+    waitingListPosition: typeof waitingPositionRes.data === "number" ? waitingPositionRes.data : null,
     isFollowing: Boolean(follower),
     canAccessPrivateGame: true,
-    isBlockedByOrganizer: false,
-    hasBlockedOrganizer: false,
+    isBlockedByOrganizer,
+    hasBlockedOrganizer,
     ratingAlreadySubmitted: false,
     assignedTeamId: participant?.team_id ?? null,
     assignedPositionId: participant?.position_id ?? null,
