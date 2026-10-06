@@ -32,7 +32,7 @@ export default async function FollowSettingsPage({ params, searchParams }: { par
     notify_new_players:false,
     notify_booking_status:false,
     notify_cancelled:true,
-    push_enabled:true,
+    push_enabled:false,
   };
 
   const items = [
@@ -61,10 +61,11 @@ export default async function FollowSettingsPage({ params, searchParams }: { par
           <span>{label}</span>
         </label>)}
       </section>
-      <label className="check-row">
-        <input type="checkbox" name="push_enabled" defaultChecked={Boolean(defaults.push_enabled)}/>
-        <span>{lv?"Push paziņojumi":"Push notifications"}</span>
-      </label>
+      <input type="hidden" name="push_enabled" value=""/>
+      <section className="panel">
+        <strong>{lv?"In-app paziņojumi ir aktīvi":"In-app notifications are active"}</strong>
+        <p className="hint">{lv?"Browser/mobile push piegāde tiks pieslēgta atsevišķi; šis iestatījums pašlaik neizliekas par aktīvu push kanālu.":"Browser/mobile push delivery is a separate integration; this setting does not pretend that push delivery is active."}</p>
+      </section>
       <button className="button primary wide" type="submit">{lv?"Saglabāt":"Save"}</button>
     </form>
   </div>;

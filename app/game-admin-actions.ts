@@ -56,6 +56,7 @@ export async function updateGameDetails(formData: FormData) {
     p_venue_booked:venueBooked,
     p_cancellation_policy_minutes:Number(value(formData,"cancellation_policy_minutes")||0),
     p_description:value(formData,"description")||null,
+    p_organizer_share_included:value(formData,"organizer_share_included")!=="false",
   });
 
   if(error) redirect("/games/"+gameId+"/edit?error="+encodeURIComponent(error.message));

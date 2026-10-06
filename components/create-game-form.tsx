@@ -24,6 +24,8 @@ export function CreateGameForm({
   const [playersNeeded,setPlayersNeeded]=useState(1);
   const [requirements,setRequirements]=useState<Record<string,number>>({});
   const [payment,setPayment]=useState("free");
+  const [totalCost,setTotalCost]=useState(0);
+  const [organizerShare,setOrganizerShare]=useState(true);
 
   const activity=activities.find(a=>a.id===activityId)??first;
   const activityPositions=useMemo(
@@ -32,6 +34,8 @@ export function CreateGameForm({
   );
   const requirementTotal=Object.values(requirements).reduce((sum,n)=>sum+(Number.isFinite(n)?n:0),0);
   const overCapacity=requirementTotal>playersNeeded;
+  const payerCount=Math.max(1,playersNeeded+(organizerShare?1:0));
+  const perPlayer=totalCost>0?totalCost/payerCount:0;
 
   function changeActivity(id:string){
     setActivityId(id);
@@ -130,7 +134,11 @@ export function CreateGameForm({
       <option value="pay_at_venue">{labels.payAtVenue}</option>
       <option value="pay_in_advance">{labels.payInAdvance}</option>
     </select></label>
-    {payment!=="free"&&<label>{labels.totalCost}<input name="total_cost" type="number" min="0" step="0.01" defaultValue="0"/></label>}
+    {payment!=="free"&&<>
+      <label>{labels.totalCost}<input name="total_cost" type="number" min="0" step="0.01" value={totalCost} onChange={e=>setTotalCost(Math.max(0,Number(e.target.value)||0))}/></label>
+      <label className="check-row"><input name="organizer_share_included" type="checkbox" checked={organizerShare} onChange={e=>setOrganizerShare(e.target.checked)}/><span>{labels.organizerShare}</span></label>
+      {totalCost>0&&<p className="hint">≈ €{perPlayer.toFixed(2)} · {labels.perPlayer}</p>}
+    </>}
 
     <label>{labels.cancellation}<select name="cancellation_policy_minutes" defaultValue="180">
       <option value="0">{labels.anytime}</option>

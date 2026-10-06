@@ -21,7 +21,7 @@ export default async function EditGamePage({params,searchParams}:{params:Promise
   const {data:{user}}=await supabase.auth.getUser();
   if(!user) redirect("/login?next=/games/"+id+"/edit");
 
-  const {data:game}=await supabase.from("games").select("id,creator_id,mode,starts_at,ends_at,custom_location,city,online_platform,total_cost,payment_method,venue_booked,cancellation_policy_minutes,description,cancelled_at").eq("id",id).maybeSingle();
+  const {data:game}=await supabase.from("games").select("id,creator_id,mode,starts_at,ends_at,custom_location,city,online_platform,total_cost,payment_method,organizer_share_included,additional_players_required,venue_booked,cancellation_policy_minutes,description,cancelled_at").eq("id",id).maybeSingle();
   if(!game) notFound();
   if(game.creator_id!==user.id) redirect("/games/"+id);
   if(game.cancelled_at) redirect("/games/"+id);
@@ -43,6 +43,8 @@ export default async function EditGamePage({params,searchParams}:{params:Promise
       {game.mode!=="physical"&&<label>{lv?"Online platforma":"Online platform"}<input name="online_platform" defaultValue={game.online_platform??""}/></label>}
       <label>{lv?"Apmaksa":"Payment"}<select name="payment_method" defaultValue={game.payment_method}><option value="free">{lv?"Bez maksas":"Free"}</option><option value="pay_at_venue">{lv?"Maksāt uz vietas":"Pay at venue"}</option><option value="pay_in_advance">{lv?"Maksāt iepriekš":"Pay in advance"}</option></select></label>
       <label>{lv?"Kopējā cena (€)":"Total cost (€)"}<input type="number" min="0" step="0.01" name="total_cost" defaultValue={Number(game.total_cost??0)}/></label>
+      <label>{lv?"Vai organizators sedz arī savu daļu?":"Does the organizer pay their own share?"}<select name="organizer_share_included" defaultValue={game.organizer_share_included===false?"false":"true"}><option value="true">{lv?"Jā":"Yes"}</option><option value="false">{lv?"Nē":"No"}</option></select></label>
+      {game.payment_method!=="free"&&Number(game.total_cost)>0&&<p className="hint">≈ €{(Number(game.total_cost)/Math.max(1,Number(game.additional_players_required)+(game.organizer_share_included===false?0:1))).toFixed(2)} {lv?"uz spēlētāju pēc pašreizējā sadalījuma":"per player with the current split"}</p>}
       <label>{lv?"Bezmaksas atcelšana līdz":"Free cancellation until"}<select name="cancellation_policy_minutes" defaultValue={String(game.cancellation_policy_minutes??0)}><option value="0">{lv?"Jebkurā laikā":"Anytime"}</option><option value="60">1 h</option><option value="180">3 h</option><option value="360">6 h</option><option value="720">12 h</option><option value="1440">24 h</option></select></label>
       <label>{lv?"Piezīmes":"Notes"}<textarea name="description" rows={4} maxLength={2000} defaultValue={game.description??""}/></label>
       <button className="button primary wide" type="submit">{lv?"Saglabāt izmaiņas":"Save changes"}</button>

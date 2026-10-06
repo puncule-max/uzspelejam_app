@@ -35,7 +35,9 @@ export default async function CreatePage({searchParams}:{searchParams:Promise<Re
     positions:locale==="lv"?"Kuras pozīcijas trūkst?":"Which positions are missing?",
     positionsHint:locale==="lv"?"Norādi tikai tās pozīcijas, kurām vajag konkrētu spēlētāju skaitu.":"Only set counts for positions you specifically need.",
     requiredCount:locale==="lv"?"Vajag":"Needed",
-    positionOverCapacity:locale==="lv"?"Pozīciju summa nevar pārsniegt trūkstošo cilvēku skaitu.":"Position requirements cannot exceed the number of missing people."
+    positionOverCapacity:locale==="lv"?"Pozīciju summa nevar pārsniegt trūkstošo cilvēku skaitu.":"Position requirements cannot exceed the number of missing people.",
+    organizerShare:locale==="lv"?"Organizators sedz arī savu daļu":"Organizer pays their own share",
+    perPlayer:locale==="lv"?"aptuveni uz spēlētāju":"approx. per player"
   };
 
   return <div className="page">

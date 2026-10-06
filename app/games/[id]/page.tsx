@@ -23,6 +23,8 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
   const location = game.mode === "online" ? `Online · ${game.online_platform}` : [game.custom_location, game.city].filter(Boolean).join(" · ");
   const actionTypes = new Set(access.actions.map(a => a.type));
   const missingTitle = access.gameStatus === "fully_booked" ? t.fullyBooked : access.gameStatus === "open" ? (access.remainingPlayers === 1 ? t.oneMissing : t.manyMissing.replace("{count}",String(access.remainingPlayers))) : access.gameStatus;
+  const payerCount=Math.max(1,Number(game.additional_players_required)+(game.organizer_share_included===false?0:1));
+  const perPlayer=Number(game.total_cost??0)/payerCount;
 
   return <div className="page">
     <Link href="/" className="back">← {t.explore}</Link>
@@ -64,7 +66,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
       <article className="panel"><h3>{t.when}</h3><p>{formatGameDateTime(game.starts_at,locale)}</p></article>
       <article className="panel"><h3>{t.where}</h3><p>{location || "TBA"}</p></article>
       <article className="panel"><h3>{t.level}</h3><p>{skillLabel(game.required_skill_levels,locale)}</p></article>
-      <article className="panel"><h3>{t.cost}</h3><p>{game.payment_method === "free" ? t.free : `€${Number(game.total_cost).toFixed(2)}`}</p></article>
+      <article className="panel"><h3>{t.cost}</h3>{game.payment_method==="free"?<p>{t.free}</p>:<><p>€{Number(game.total_cost).toFixed(2)} · ≈ €{perPlayer.toFixed(2)} / {locale==="lv"?"spēlētāju":"player"}</p><p className="hint">{game.organizer_share_included===false?(locale==="lv"?"Organizatora daļa nav iekļauta sadalījumā.":"Organizer share is excluded from the split."):(locale==="lv"?"Organizatora daļa ir iekļauta sadalījumā.":"Organizer share is included in the split.")}</p></>}</article>
     </section>
     {game.activity?.supports_positions&&positionOptions.some((p:any)=>p.required_count>0)&&<section className="panel"><h2>{locale==="lv"?"Vajadzīgās pozīcijas":"Positions needed"}</h2><div className="stack">{positionOptions.filter((p:any)=>p.required_count>0).map((p:any)=><div className="position-status" key={p.id}><strong>{locale==="lv"?p.name_lv:p.name_en}</strong><span>{p.accepted_count}/{p.required_count} · {p.remaining_count>0?`${p.remaining_count} ${locale==="lv"?"vēl vajag":"still needed"}`:(locale==="lv"?"Nokomplektēts":"Filled")}</span></div>)}</div></section>}
     {access.permissions.canViewConfirmedParticipants&&<section className="panel">

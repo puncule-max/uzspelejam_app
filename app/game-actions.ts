@@ -77,6 +77,7 @@ export async function createGame(formData: FormData) {
     p_cancellation_policy_minutes: Number(asString(formData.get("cancellation_policy_minutes")) || 0),
     p_description: asString(formData.get("description")) || null,
     p_position_requirements: positionRequirements,
+    p_organizer_share_included: paid ? asString(formData.get("organizer_share_included")) === "on" : true,
   });
   if (error) redirect(`/create?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/");
