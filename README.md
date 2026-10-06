@@ -12,7 +12,8 @@ Implemented:
 - runtime LV/EN locale switching
 - Latvia-first activity catalogue; solo-only activities are excluded
 - activity skill preferences and preferred sport positions
-- Explore search, quick filters and advanced filters
+- Explore search, quick filters, exact-date filtering and advanced filters
+- activity-specific missing-player language (opponent, partner, sparring partner, position/player)
 - Create Game for physical/online games
 - public/private games and tokenized private invites
 - Join request with organizer approval/decline

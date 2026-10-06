@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getGameDetails } from "@/lib/game-data";
-import { formatGameDateTime, skillLabel } from "@/lib/format";
+import { formatGameDateTime, skillLabel, missingNeedLabel } from "@/lib/format";
 import { getDictionary, getLocale } from "@/lib/i18n";
 import { joinGame, joinWaitingList, withdrawApplication, leaveWaitingList, leaveGame, followGame, unfollowGame } from "@/app/game-actions";
 import { reportGame, blockUser } from "@/app/safety-actions";
@@ -23,7 +23,22 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
   const activity = locale === "lv" ? game.activity?.name_lv : game.activity?.name_en;
   const location = game.mode === "online" ? `Online · ${game.online_platform}` : [game.custom_location, game.city].filter(Boolean).join(" · ");
   const actionTypes = new Set(access.actions.map(a => a.type));
-  const missingTitle = access.gameStatus === "fully_booked" ? t.fullyBooked : access.gameStatus === "open" ? (access.remainingPlayers === 1 ? t.oneMissing : t.manyMissing.replace("{count}",String(access.remainingPlayers))) : access.gameStatus;
+  const requiredOpen=positionOptions.filter((p:any)=>p.remaining_count>0);
+  const requiredOpenTotal=requiredOpen.reduce((sum:number,p:any)=>sum+Number(p.remaining_count),0);
+  const positionName=requiredOpen.length===1&&requiredOpenTotal===access.remainingPlayers
+    ? (locale==="lv"?requiredOpen[0].name_lv:requiredOpen[0].name_en)
+    : null;
+  const missingTitle = access.gameStatus === "fully_booked"
+    ? t.fullyBooked
+    : access.gameStatus === "open"
+      ? missingNeedLabel({
+          remaining:access.remainingPlayers,
+          participationType:game.activity?.participation_type,
+          activityCode:game.activity?.code,
+          positionName,
+          locale
+        })
+      : access.gameStatus;
   const payerCount=Math.max(1,Number(game.additional_players_required)+(game.organizer_share_included===false?0:1));
   const perPlayer=Number(game.total_cost??0)/payerCount;
 
