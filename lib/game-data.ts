@@ -95,6 +95,13 @@ export async function getGameDetails(id: string) {
   };
 
   const access = resolveGameAccessContext(ctx);
+  let acceptedParticipants:any[] = [];
+  if (access.permissions.canViewConfirmedParticipants) {
+    const { data } = await supabase.from("game_participants")
+      .select("user_id,team_id,position_id,profile:profiles!game_participants_user_id_fkey(id,display_name,avatar_url,rating_average,rating_count),position:positions!game_participants_position_id_fkey(id,name_lv,name_en)")
+      .eq("game_id",id).eq("status","accepted").order("joined_at");
+    acceptedParticipants = data ?? [];
+  }
   const { data: organizerRows } = await supabase.rpc("get_profile_detail",{ p_user_id: game.creator_id });
   const organizerProfile = Array.isArray(organizerRows) ? organizerRows[0] : organizerRows;
   let conversationId: string | null = null;
@@ -107,5 +114,5 @@ export async function getGameDetails(id: string) {
     conversationId = conversation?.id ?? null;
   }
 
-  return { game, user, participant, application, waiting, follower, access, acceptedCount: acceptedCount ?? 0, conversationId, positionOptions, organizerProfile, teams };
+  return { game, user, participant, application, waiting, follower, access, acceptedCount: acceptedCount ?? 0, conversationId, positionOptions, organizerProfile, teams, acceptedParticipants };
 }

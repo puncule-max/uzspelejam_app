@@ -5,6 +5,7 @@ import { formatGameDateTime, skillLabel } from "@/lib/format";
 import { getDictionary, getLocale } from "@/lib/i18n";
 import { joinGame, joinWaitingList, withdrawApplication, leaveWaitingList, leaveGame, followGame, unfollowGame } from "@/app/game-actions";
 import { reportGame, blockUser } from "@/app/safety-actions";
+import { ShareButton } from "@/components/share-button";
 
 function HiddenGame({ id }: { id: string }) { return <input type="hidden" name="game_id" value={id} />; }
 
@@ -15,7 +16,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
   const error = typeof sp.error === "string" ? sp.error : null;
   const data = await getGameDetails(id);
   if (!data) notFound();
-  const { game, user, access, acceptedCount, conversationId, positionOptions, organizerProfile } = data;
+  const { game, user, access, acceptedCount, conversationId, positionOptions, organizerProfile, teams, acceptedParticipants } = data;
   if (!access.permissions.canViewGame) notFound();
   const activity = locale === "lv" ? game.activity?.name_lv : game.activity?.name_en;
   const location = game.mode === "online" ? `Online · ${game.online_platform}` : [game.custom_location, game.city].filter(Boolean).join(" · ");
@@ -42,6 +43,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
         {actionTypes.has("follow") && <form action={followGame}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.follow}</button></form>}
         {actionTypes.has("edit_follow_preferences") && <Link className="button ghost" href={`/games/${id}/follow`}>{locale==="lv"?"Sekošanas iestatījumi":"Follow settings"}</Link>}
         {actionTypes.has("unfollow") && <form action={unfollowGame}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.unfollow}</button></form>}
+        {access.permissions.canShareGame && <ShareButton label={locale==="lv"?"Dalīties":"Share"} text={access.remainingPlayers===1?"One spot left. You in?":"You in?"}/>}
         {actionTypes.has("withdraw_application") && <form action={withdrawApplication}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.withdraw}</button></form>}
         {actionTypes.has("leave_waiting_list") && <form action={leaveWaitingList}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.leaveWaiting}</button></form>}
         {actionTypes.has("leave_game") && <form action={leaveGame}><HiddenGame id={id}/><button className="button danger" type="submit">{t.leaveGame}</button></form>}
@@ -64,6 +66,22 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
       <article className="panel"><h3>{t.cost}</h3><p>{game.payment_method === "free" ? t.free : `€${Number(game.total_cost).toFixed(2)}`}</p></article>
     </section>
     {game.activity?.supports_positions&&positionOptions.some((p:any)=>p.required_count>0)&&<section className="panel"><h2>{locale==="lv"?"Vajadzīgās pozīcijas":"Positions needed"}</h2><div className="stack">{positionOptions.filter((p:any)=>p.required_count>0).map((p:any)=><div className="position-status" key={p.id}><strong>{locale==="lv"?p.name_lv:p.name_en}</strong><span>{p.accepted_count}/{p.required_count} · {p.remaining_count>0?`${p.remaining_count} ${locale==="lv"?"vēl vajag":"still needed"}`:(locale==="lv"?"Nokomplektēts":"Filled")}</span></div>)}</div></section>}
+    {access.permissions.canViewConfirmedParticipants&&<section className="panel">
+      <h2>{locale==="lv"?"Dalībnieki":"Participants"}</h2>
+      <div className="stack">
+        {acceptedParticipants.map((row:any)=>{
+          const profile:any=Array.isArray(row.profile)?row.profile[0]:row.profile;
+          const position:any=Array.isArray(row.position)?row.position[0]:row.position;
+          const team=teams.find((x:any)=>x.id===row.team_id);
+          return <Link className="participant-public-row" href={`/users/${row.user_id}`} key={row.user_id}>
+            <div className="avatar-small">{profile?.display_name?.slice(0,1).toUpperCase()??"?"}</div>
+            <div><strong>{profile?.display_name??(locale==="lv"?"Spēlētājs":"Player")}</strong><p className="hint">{[team?.name,position?(locale==="lv"?position.name_lv:position.name_en):null].filter(Boolean).join(" · ")}</p></div>
+            <span>★ {Number(profile?.rating_average??0).toFixed(1)}</span>
+          </Link>;
+        })}
+        {!acceptedParticipants.length&&<p className="hint">{locale==="lv"?"Vēl nav apstiprinātu dalībnieku.":"No confirmed participants yet."}</p>}
+      </div>
+    </section>}
     <section className="panel"><h2>{t.gameDetails}</h2><p>{game.description || "—"}</p><p>{game.venue_booked === true ? (locale==="lv"?"Vieta rezervēta ✓":"Venue booked ✓") : game.venue_booked === false ? (locale==="lv"?"Vieta vēl nav rezervēta":"Venue not booked yet") : ""}</p></section>
     <section className="panel"><h2>{t.yourStatus}</h2><p><strong>{access.userGameState.replaceAll("_", " ")}</strong></p></section>
     {user && user.id !== game.creator_id && <section className="panel">
