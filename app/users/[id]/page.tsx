@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getLocale } from "@/lib/i18n";
+import { Avatar } from "@/components/avatar";
 
 function first<T>(v:T|T[]|null|undefined):T|null{return Array.isArray(v)?v[0]??null:v??null;}
 
@@ -29,7 +30,7 @@ export default async function UserProfilePage({params}:{params:Promise<{id:strin
   return <div className="page narrow">
     <Link className="back" href="/">← {lv?"Meklēt spēli":"Explore"}</Link>
     <section className="profile-card">
-      <div className="avatar-large">{profile.display_name?.slice(0,1).toUpperCase()??"?"}</div>
+      <Avatar className="avatar-large" src={profile.avatar_url} name={profile.display_name}/>
       <div>
         <h1>{profile.display_name}</h1>
         <p>{profile.visibility==="private"?(lv?"Privāts profils":"Private profile"):(lv?"Publisks profils":"Public profile")}</p>

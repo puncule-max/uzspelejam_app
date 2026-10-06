@@ -25,7 +25,11 @@ export default async function EditProfilePage({searchParams}:{searchParams:Promi
 
   const error = rawError === "TEEN_PROFILE_MUST_BE_PRIVATE"
     ? (lv ? "Lietotājiem līdz 18 gadu vecumam profils drošības dēļ paliek privāts." : "Profiles for users under 18 must remain private for safety.")
-    : rawError;
+    : rawError === "AVATAR_TOO_LARGE"
+      ? (lv ? "Profila attēls nedrīkst pārsniegt 5 MB." : "Profile image must be 5 MB or smaller.")
+      : rawError === "AVATAR_INVALID_TYPE"
+        ? (lv ? "Atļauti JPG, PNG un WebP attēli." : "Use a JPG, PNG or WebP image.")
+        : rawError;
 
   return <div className="page narrow">
     <Link className="back" href="/profile">← {lv?"Profils":"Profile"}</Link>
@@ -37,7 +41,13 @@ export default async function EditProfilePage({searchParams}:{searchParams:Promi
       ? "Teen Safety režīms ir aktīvs. Tavs profils paliek privāts."
       : "Teen Safety mode is active. Your profile remains private."}</p>}
 
-    <form action={updateProfile} className="wizard">
+    <form action={updateProfile} className="wizard" encType="multipart/form-data">
+      {profile?.avatar_url&&<img className="avatar-large avatar-preview" src={profile.avatar_url} alt=""/>}
+      <label>{lv?"Profila attēls":"Profile image"}
+        <input name="avatar" type="file" accept="image/jpeg,image/png,image/webp"/>
+        <span className="hint">{lv?"JPG, PNG vai WebP · līdz 5 MB":"JPG, PNG or WebP · up to 5 MB"}</span>
+      </label>
+      {profile?.avatar_url&&<label className="check-row"><input type="checkbox" name="remove_avatar"/><span>{lv?"Noņemt esošo attēlu":"Remove current image"}</span></label>}
       <label>{lv?"Vārds":"Display name"}
         <input name="display_name" required maxLength={80} defaultValue={profile?.display_name ?? ""}/>
       </label>

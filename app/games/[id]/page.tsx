@@ -6,6 +6,7 @@ import { getDictionary, getLocale } from "@/lib/i18n";
 import { joinGame, joinWaitingList, withdrawApplication, leaveWaitingList, leaveGame, followGame, unfollowGame } from "@/app/game-actions";
 import { reportGame, blockUser } from "@/app/safety-actions";
 import { ShareButton } from "@/components/share-button";
+import { Avatar } from "@/components/avatar";
 
 function HiddenGame({ id }: { id: string }) { return <input type="hidden" name="game_id" value={id} />; }
 
@@ -52,7 +53,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
     <section className="panel organizer-card">
       <h2>{locale==="lv"?"Organizators":"Organizer"}</h2>
       <Link className="organizer-link" href={`/users/${game.creator_id}`}>
-        <div className="avatar-small">{organizerProfile?.display_name?.slice(0,1).toUpperCase() ?? "?"}</div>
+        <Avatar className="avatar-small" src={organizerProfile?.avatar_url} name={organizerProfile?.display_name}/>
         <div>
           <strong>{organizerProfile?.display_name ?? (locale==="lv"?"Organizators":"Organizer")}</strong>
           <p className="hint">★ {Number(organizerProfile?.rating_average ?? 0).toFixed(1)} ({organizerProfile?.rating_count ?? 0}) · {organizerProfile?.completed_games_count ?? 0} {locale==="lv"?"spēles":"games"}</p>
@@ -74,7 +75,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
           const position:any=Array.isArray(row.position)?row.position[0]:row.position;
           const team=teams.find((x:any)=>x.id===row.team_id);
           return <Link className="participant-public-row" href={`/users/${row.user_id}`} key={row.user_id}>
-            <div className="avatar-small">{profile?.display_name?.slice(0,1).toUpperCase()??"?"}</div>
+            <Avatar className="avatar-small" src={profile?.avatar_url} name={profile?.display_name}/>
             <div><strong>{profile?.display_name??(locale==="lv"?"Spēlētājs":"Player")}</strong><p className="hint">{[team?.name,position?(locale==="lv"?position.name_lv:position.name_en):null].filter(Boolean).join(" · ")}</p></div>
             <span>★ {Number(profile?.rating_average??0).toFixed(1)}</span>
           </Link>;

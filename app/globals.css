@@ -6,3 +6,4 @@
 .filter-panel{margin:10px 0 16px}.filter-panel summary{cursor:pointer;font-weight:800}.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.filter-actions{display:flex;gap:8px;align-items:center;margin-top:12px}.filter-actions .button{flex:1}@media(max-width:620px){.filter-grid{grid-template-columns:1fr}}
 .participant-public-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-decoration:none;color:var(--text);padding:10px 0;border-bottom:1px solid var(--line)}.participant-public-row:last-child{border-bottom:0}.participant-public-row p{margin:3px 0}.participant-public-row>span{font-size:13px;color:var(--muted)}
 .position-create-row{display:grid;grid-template-columns:1fr auto 82px;gap:10px;align-items:center}.position-create-row input{width:82px}
+.avatar-large,.avatar-small{object-fit:cover;overflow:hidden}.avatar-preview{margin-bottom:12px}

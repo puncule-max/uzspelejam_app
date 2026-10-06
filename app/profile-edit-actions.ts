@@ -14,6 +14,8 @@ export async function updateProfile(formData: FormData) {
   const city = clean(formData.get("city"),120);
   const about = clean(formData.get("about"),1000);
   const visibility = String(formData.get("visibility") ?? "private") === "public" ? "public" : "private";
+  const avatar = formData.get("avatar");
+  const removeAvatar = String(formData.get("remove_avatar") ?? "") === "on";
 
   if (!displayName || displayName.length > 80) {
     redirect("/profile/edit?error=" + encodeURIComponent("INVALID_DISPLAY_NAME"));
@@ -23,15 +25,38 @@ export async function updateProfile(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/profile/edit");
 
+  let avatarUrl: string | null | undefined = undefined;
+  if (removeAvatar) {
+    await supabase.storage.from("avatars").remove([user.id + "/avatar"]);
+    avatarUrl = null;
+  } else if (avatar instanceof File && avatar.size > 0) {
+    const allowed = ["image/jpeg","image/png","image/webp"];
+    if (avatar.size > 5 * 1024 * 1024) {
+      redirect("/profile/edit?error=" + encodeURIComponent("AVATAR_TOO_LARGE"));
+    }
+    if (!allowed.includes(avatar.type)) {
+      redirect("/profile/edit?error=" + encodeURIComponent("AVATAR_INVALID_TYPE"));
+    }
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(user.id + "/avatar", avatar, { upsert: true, contentType: avatar.type, cacheControl: "3600" });
+    if (uploadError) redirect("/profile/edit?error=" + encodeURIComponent(uploadError.message));
+    const { data: publicData } = supabase.storage.from("avatars").getPublicUrl(user.id + "/avatar");
+    avatarUrl = publicData.publicUrl + "?v=" + Date.now();
+  }
+
+  const updates: Record<string, unknown> = {
+    display_name: displayName,
+    city,
+    about,
+    visibility,
+    updated_at: new Date().toISOString(),
+  };
+  if (avatarUrl !== undefined) updates.avatar_url = avatarUrl;
+
   const { error } = await supabase
     .from("profiles")
-    .update({
-      display_name: displayName,
-      city,
-      about,
-      visibility,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updates)
     .eq("id",user.id);
 
   if (error) {
