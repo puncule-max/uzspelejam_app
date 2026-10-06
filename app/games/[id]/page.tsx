@@ -4,6 +4,7 @@ import { getGameDetails } from "@/lib/game-data";
 import { formatGameDateTime, skillLabel } from "@/lib/format";
 import { getDictionary, getLocale } from "@/lib/i18n";
 import { joinGame, joinWaitingList, withdrawApplication, leaveWaitingList, leaveGame, followGame, unfollowGame } from "@/app/game-actions";
+import { reportGame, blockUser } from "@/app/safety-actions";
 
 function HiddenGame({ id }: { id: string }) { return <input type="hidden" name="game_id" value={id} />; }
 
@@ -53,5 +54,30 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
     </section>
     <section className="panel"><h2>{t.gameDetails}</h2><p>{game.description || "—"}</p><p>{game.venue_booked === true ? (locale==="lv"?"Vieta rezervēta ✓":"Venue booked ✓") : game.venue_booked === false ? (locale==="lv"?"Vieta vēl nav rezervēta":"Venue not booked yet") : ""}</p></section>
     <section className="panel"><h2>{t.yourStatus}</h2><p><strong>{access.userGameState.replaceAll("_", " ")}</strong></p></section>
+    {user && user.id !== game.creator_id && <section className="panel">
+      <h2>{locale==="lv"?"Drošība":"Safety"}</h2>
+      {sp.reported === "1" && <p className="notice success">{locale==="lv"?"Ziņojums nosūtīts.":"Report submitted."}</p>}
+      <details>
+        <summary>{locale==="lv"?"Ziņot par spēli / organizatoru":"Report game / organizer"}</summary>
+        <form action={reportGame} className="wizard">
+          <input type="hidden" name="game_id" value={id}/>
+          <label>{locale==="lv"?"Iemesls":"Reason"}<select name="reason" defaultValue="unsafe">
+            <option value="spam">Spam</option>
+            <option value="harassment">{locale==="lv"?"Uzmākšanās":"Harassment"}</option>
+            <option value="unsafe">{locale==="lv"?"Nedroša situācija":"Unsafe"}</option>
+            <option value="inappropriate">{locale==="lv"?"Nepiemērots saturs":"Inappropriate"}</option>
+            <option value="fraud">{locale==="lv"?"Krāpšana":"Fraud"}</option>
+            <option value="other">{locale==="lv"?"Cits":"Other"}</option>
+          </select></label>
+          <label>{locale==="lv"?"Komentārs":"Comment"}<textarea name="comment" rows={3} maxLength={2000}/></label>
+          <button className="button ghost" type="submit">{locale==="lv"?"Nosūtīt ziņojumu":"Submit report"}</button>
+        </form>
+      </details>
+      <form action={blockUser} className="safety-block-form">
+        <input type="hidden" name="user_id" value={game.creator_id}/>
+        <input type="hidden" name="game_id" value={id}/>
+        <button className="button danger wide" type="submit">{locale==="lv"?"Bloķēt organizatoru":"Block organizer"}</button>
+      </form>
+    </section>}
   </div>;
 }
