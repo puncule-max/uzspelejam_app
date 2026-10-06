@@ -15,7 +15,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
   const error = typeof sp.error === "string" ? sp.error : null;
   const data = await getGameDetails(id);
   if (!data) notFound();
-  const { game, user, access, acceptedCount, conversationId, positionOptions } = data;
+  const { game, user, access, acceptedCount, conversationId, positionOptions, organizerProfile } = data;
   if (!access.permissions.canViewGame) notFound();
   const activity = locale === "lv" ? game.activity?.name_lv : game.activity?.name_en;
   const location = game.mode === "online" ? `Online · ${game.online_platform}` : [game.custom_location, game.city].filter(Boolean).join(" · ");
@@ -46,6 +46,16 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
         {actionTypes.has("leave_waiting_list") && <form action={leaveWaitingList}><HiddenGame id={id}/><button className="button ghost" type="submit">{t.leaveWaiting}</button></form>}
         {actionTypes.has("leave_game") && <form action={leaveGame}><HiddenGame id={id}/><button className="button danger" type="submit">{t.leaveGame}</button></form>}
       </div>
+    </section>
+    <section className="panel organizer-card">
+      <h2>{locale==="lv"?"Organizators":"Organizer"}</h2>
+      <Link className="organizer-link" href={`/users/${game.creator_id}`}>
+        <div className="avatar-small">{organizerProfile?.display_name?.slice(0,1).toUpperCase() ?? "?"}</div>
+        <div>
+          <strong>{organizerProfile?.display_name ?? (locale==="lv"?"Organizators":"Organizer")}</strong>
+          <p className="hint">★ {Number(organizerProfile?.rating_average ?? 0).toFixed(1)} ({organizerProfile?.rating_count ?? 0}) · {organizerProfile?.completed_games_count ?? 0} {locale==="lv"?"spēles":"games"}</p>
+        </div>
+      </Link>
     </section>
     <section className="detail-grid">
       <article className="panel"><h3>{t.when}</h3><p>{formatGameDateTime(game.starts_at,locale)}</p></article>

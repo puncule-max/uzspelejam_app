@@ -90,6 +90,8 @@ export async function getGameDetails(id: string) {
   };
 
   const access = resolveGameAccessContext(ctx);
+  const { data: organizerRows } = await supabase.rpc("get_profile_detail",{ p_user_id: game.creator_id });
+  const organizerProfile = Array.isArray(organizerRows) ? organizerRows[0] : organizerRows;
   let conversationId: string | null = null;
 
   if (user && (access.userGameState === "accepted" || access.userGameState === "organizer")) {
@@ -100,5 +102,5 @@ export async function getGameDetails(id: string) {
     conversationId = conversation?.id ?? null;
   }
 
-  return { game, user, participant, application, waiting, follower, access, acceptedCount: acceptedCount ?? 0, conversationId, positionOptions };
+  return { game, user, participant, application, waiting, follower, access, acceptedCount: acceptedCount ?? 0, conversationId, positionOptions, organizerProfile };
 }
