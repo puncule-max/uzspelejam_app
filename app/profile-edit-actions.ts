@@ -45,22 +45,27 @@ export async function updateProfile(formData: FormData) {
     avatarUrl = publicData.publicUrl + "?v=" + Date.now();
   }
 
-  const updates: Record<string, unknown> = {
-    display_name: displayName,
-    city,
-    about,
-    visibility,
-    updated_at: new Date().toISOString(),
-  };
-  if (avatarUrl !== undefined) updates.avatar_url = avatarUrl;
-
   const { error } = await supabase
     .from("profiles")
-    .update(updates)
+    .update({
+      display_name: displayName,
+      city,
+      about,
+      visibility,
+    })
     .eq("id",user.id);
 
   if (error) {
     redirect("/profile/edit?error=" + encodeURIComponent(error.message));
+  }
+
+  if (avatarUrl !== undefined) {
+    const { error: avatarError } = await supabase.rpc("set_my_avatar_url", {
+      p_avatar_url: avatarUrl,
+    });
+    if (avatarError) {
+      redirect("/profile/edit?error=" + encodeURIComponent(avatarError.message));
+    }
   }
 
   revalidatePath("/profile");

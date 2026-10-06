@@ -11,7 +11,7 @@ export async function setLanguage(formData: FormData) {
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (user) await supabase.from("profiles").update({ language: value, updated_at: new Date().toISOString() }).eq("id", user.id);
+  if (user) await supabase.from("profiles").update({ language: value }).eq("id", user.id);
 
   revalidatePath("/", "layout");
 }
