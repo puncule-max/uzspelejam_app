@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext, ageOn } from "@/lib/auth-navigation";
 
 function requireString(value: FormDataEntryValue | null, name: string) {
   const result = String(value ?? "").trim();
@@ -10,23 +11,9 @@ function requireString(value: FormDataEntryValue | null, name: string) {
   return result;
 }
 
-function safeNext(value: FormDataEntryValue | null) {
-  const next = String(value ?? "/").trim();
-  return next.startsWith("/") && !next.startsWith("//") ? next : "/";
-}
-
-function ageOn(dateString: string) {
-  const birth = new Date(`${dateString}T00:00:00Z`);
-  const now = new Date();
-  let age = now.getUTCFullYear() - birth.getUTCFullYear();
-  const beforeBirthday = now.getUTCMonth() < birth.getUTCMonth() || (now.getUTCMonth() === birth.getUTCMonth() && now.getUTCDate() < birth.getUTCDate());
-  if (beforeBirthday) age -= 1;
-  return age;
-}
-
 export async function signIn(formData: FormData) {
   const email = requireString(formData.get("email"), "Email");
-  const password = requireString(formData.get("password"), "Password");
+  const password = String(formData.get("password") ?? "");
   const next = safeNext(formData.get("next"));
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -37,11 +24,12 @@ export async function signIn(formData: FormData) {
 export async function signUp(formData: FormData) {
   const displayName = requireString(formData.get("display_name"), "Display name");
   const email = requireString(formData.get("email"), "Email");
-  const password = requireString(formData.get("password"), "Password");
+  const password = String(formData.get("password") ?? "");
   const birthDate = requireString(formData.get("birth_date"), "Birth date");
   const city = String(formData.get("city") ?? "").trim();
   const language = String(formData.get("language") ?? "lv") === "en" ? "en" : "lv";
   const next = safeNext(formData.get("next"));
+  if (password.length < 8) redirect(`/signup?error=${encodeURIComponent("Password must be at least 8 characters.")}&next=${encodeURIComponent(next)}`);
   const age = ageOn(birthDate);
   if (!Number.isFinite(age) || age < 16) redirect(`/signup?error=${encodeURIComponent("You must be at least 16 years old.")}&next=${encodeURIComponent(next)}`);
 
@@ -74,8 +62,8 @@ export async function requestPasswordReset(formData: FormData) {
 }
 
 export async function updatePassword(formData: FormData) {
-  const password = requireString(formData.get("password"), "Password");
-  const confirmPassword = requireString(formData.get("confirm_password"), "Password confirmation");
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirm_password") ?? "");
   if (password.length < 8) redirect("/update-password?error=" + encodeURIComponent("Password must be at least 8 characters."));
   if (password !== confirmPassword) redirect("/update-password?error=" + encodeURIComponent("Passwords do not match."));
 
