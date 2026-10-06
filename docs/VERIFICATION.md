@@ -17,7 +17,7 @@ Premium, recurring games, boosted listings, integrated payments, Like and advanc
 
 ## Email verification boundary
 
-Production signup and password-reset form requests succeeded. Supabase recorded confirmation and recovery sending timestamps. These results prove the application's handoff to Auth, not receipt in the external mailbox or successful consumption of the emailed links. The recipient received the signup message and clicked its link. Auth recorded email confirmation at 2026-10-06 11:05:50 UTC, but the browser was redirected to localhost because the provider Site URL and redirect allow list had not been configured. Password recovery completion remains pending.
+Initial production signup and password-reset form requests succeeded, but the first confirmed signup redirected to localhost because the provider URLs were not configured. That provider configuration was subsequently corrected. On 2026-10-06 Resend verified `uzspelejam.lv`, and custom SMTP was saved in Supabase. The recipient completed password recovery, reached the profile page, then explicitly confirmed successful sign-out and fresh sign-in using the new password. Auth recorded a sign-in at 13:51:22 UTC. Mailbox delivery and password recovery are therefore verified on the original Vercel production host. A fresh real email flow on the custom domain remains to be checked.
 
 ## Repeating checks
 
@@ -37,6 +37,12 @@ On 2026-10-06 the production Supabase dashboard still showed `http://localhost:3
 
 Live Auth requests with intentionally invalid signup/recovery tokens returned HTTP 303 to the production `/auth/callback`, preserving `/profile` and `/update-password`. An arbitrary game return path and a foreign-origin rejection were checked separately. These probes verify redirect configuration, not successful fresh-token session establishment. Existing emails embed their original redirect and should be replaced by a fresh request from the browser that will open the email link, as the default PKCE flow depends on that browser's verifier cookie.
 
-The dashboard confirmed the default Supabase email service is in use. Template editing requires custom SMTP or a paid plan. SMTP setup and a real password-recovery completion remain release follow-ups; no subscription or email-provider purchase was made.
+At the initial checkpoint the default Supabase email service was in use. This has since been replaced by Resend SMTP, and the recipient completed real password recovery. No paid subscription was enabled.
 
 The recipient's subsequent password-recovery request was blocked with `email rate limit exceeded`. The default provider permits two emails per hour per project; custom SMTP is required for dependable public production signup/recovery. Signup and password-recovery screens now explain this condition in LV/EN and explicitly state that no new link was sent. Rendering checks use an error query parameter and do not send additional emails. See [Auth rate limits](https://supabase.com/docs/guides/auth/rate-limits) and [custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp).
+
+## Custom production domain
+
+`https://uzspelejam.lv` serves the application over HTTPS (HTTP 200). NIC's public A and DKIM records match the configured values. Vercel `NEXT_PUBLIC_SITE_URL` and Supabase Site URL are set to the custom domain. Three custom-domain callback URLs (profile, password reset, and safe dynamic `next`) have been added, retaining the original Vercel-host callbacks for transition compatibility.
+
+Live Auth probes with deliberately invalid tokens redirect to the custom-domain profile/recovery/game callbacks; a foreign origin is rejected in favor of the configured custom-domain Site URL. These probes test redirect configuration without sending emails or consuming real verification tokens. Security advisors still report only the previously documented leaked-password-protection warning.

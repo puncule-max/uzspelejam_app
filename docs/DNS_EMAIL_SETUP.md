@@ -1,6 +1,6 @@
 # uzspelejam.lv — DNS un e-pastu konfigurācija
 
-Stāvoklis 2026-10-06: visi pieci DNS ieraksti saglabāti NIC panelī un pārbaudīti lietotāja ekrānattēlā. Resend rāda `Verified` domēnam `uzspelejam.lv`. Supabase produkcijas projektā ieslēgts un saglabāts custom SMTP; pēc lapas pārlādes un konfigurācijas ielādes atkārtoti pārbaudīts ieslēgts slēdzis un saglabāta parole. Vercel domēna HTTPS/certifikāta pārbaude un īstu e-pastu piegādes pārbaude vēl jāveic. Zemāk ir konkrētajam projektam panelī nolasītās vērtības, nevis dokumentācijas piemēri.
+Stāvoklis 2026-10-06: visi pieci DNS ieraksti saglabāti NIC panelī un pārbaudīti lietotāja ekrānattēlā. Resend rāda `Verified` domēnam `uzspelejam.lv`. Supabase custom SMTP saglabāts un pēc konfigurācijas ielādes pārbaudīts. Lietotāja apstiprināja reālu paroles atjaunošanu un atkārtotu pierakstīšanos ar jauno paroli esošajā Vercel adresē. Jaunais domēns atver aplikāciju ar HTTPS (HTTP 200). Vercel `NEXT_PUBLIC_SITE_URL` un Supabase Site URL pārslēgti uz `https://uzspelejam.lv`; jaunā domēna callback atļaujas pievienotas, vecās saglabātas pārejas laikam. Pilna reāla e-pasta darbplūsma jaunajā domēnā vēl jāpārbauda. Zemāk ir konkrētajam projektam panelī nolasītās vērtības, nevis dokumentācijas piemēri.
 
 ## DNS ieraksti NIC panelim
 
@@ -32,7 +32,7 @@ Saglabāts Ireland (`eu-west-1`). Tas nosaka e-pastu sūtīšanas serveru reģio
 
 Pabeigts: DNS ievade, Resend domēna verifikācija un Supabase SMTP pieslēgums. Aktīvajai API atslēgai `Uzspelejam Supabase SMTP` piešķirta `Sending access` tikai domēnam `uzspelejam.lv`. Sākotnējā neizmantotā atslēga atsaukta; atstāta viena aktīva atslēga. Slepenā vērtība nav saglabāta repozitorijā.
 
-SMTP iestatījumi: `smtp.resend.com:465`, lietotājs `resend`, sūtītājs `Uzspēlējam? <no-reply@uzspelejam.lv>`, minimālais intervāls vienam lietotājam 60 sekundes. Piegāde un pilna Auth darbplūsma vēl nav apstiprināta. Pēc lapas pārlādes jāsagaida konfigurācijas ielāde: sākotnējais izslēgtais slēdzis pats par sevi nepierāda, ka saglabāšana neizdevās.
+SMTP iestatījumi: `smtp.resend.com:465`, lietotājs `resend`, sūtītājs `Uzspēlējam? <no-reply@uzspelejam.lv>`, minimālais intervāls vienam lietotājam 60 sekundes. Paroles atjaunošanas e-pasta piegāde un atkārtota pierakstīšanās pārbaudīta ar lietotāju. Pēc lapas pārlādes jāsagaida konfigurācijas ielāde: sākotnējais izslēgtais slēdzis pats par sevi nepierāda, ka saglabāšana neizdevās.
 
 1. Pārbaudi publisko DNS un Vercel domēna statusu/certifikātu.
 2. Resend domēna lapā izvēlies `I've added the records` un sagaidi verifikāciju. E-pastu saņemšanas funkcija nav ieslēgta; šī konfigurācija paredzēta aplikācijas sūtījumiem.

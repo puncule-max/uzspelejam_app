@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-const base = new URL(process.argv[2] ?? process.env.SMOKE_BASE_URL ?? "https://uzspelejam-app-prod.vercel.app");
+const base = new URL(process.argv[2] ?? process.env.SMOKE_BASE_URL ?? "https://uzspelejam.lv");
 assert.ok(["https:", "http:"].includes(base.protocol));
 async function request(path, options = {}) {
   return fetch(new URL(path, base), { redirect: "manual", signal: AbortSignal.timeout(30000), ...options });
