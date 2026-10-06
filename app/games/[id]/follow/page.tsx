@@ -64,7 +64,7 @@ export default async function FollowSettingsPage({ params, searchParams }: { par
       <input type="hidden" name="push_enabled" value=""/>
       <section className="panel">
         <strong>{lv?"In-app paziņojumi ir aktīvi":"In-app notifications are active"}</strong>
-        <p className="hint">{lv?"Browser/mobile push piegāde tiks pieslēgta atsevišķi; šis iestatījums pašlaik neizliekas par aktīvu push kanālu.":"Browser/mobile push delivery is a separate integration; this setting does not pretend that push delivery is active."}</p>
+        <p className="hint">{lv?"Izvēlētie paziņojumi parādās aplikācijā. Paziņojumi ārpus aplikācijas vēl nav pieejami.":"Your selected updates appear in the app. Notifications outside the app are not available yet."}</p>
       </section>
       <button className="button primary wide" type="submit">{lv?"Saglabāt":"Save"}</button>
     </form>
