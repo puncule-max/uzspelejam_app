@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { acceptApplication, declineApplication, promoteWaitingUser } from "@/app/game-actions";
 import { createPrivateInvite } from "@/app/invite-actions";
 import { setPositionRequirement } from "@/app/position-actions";
-import { assignParticipantTeam } from "@/app/team-actions";
+import { updateParticipantAssignment, removeParticipant } from "@/app/participant-actions";
 import { getLocale } from "@/lib/i18n";
 import { cancelGame } from "@/app/game-admin-actions";
 
@@ -111,7 +111,7 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
     </div></section>
 
     <section className="panel"><h2>{lv?"Gaidīšanas saraksts":"Waiting list"}</h2><div className="stack">
-      {waiting?.map((w:any,index:number)=>{const profile:any=first(w.profile);return <article className="applicant" key={w.id}><div><Link href={`/users/${w.user_id}`}><strong>#{index+1} · {profile?.display_name??"Player"}</strong></Link></div><form action={promoteWaitingUser}><input type="hidden" name="game_id" value={id}/><input type="hidden" name="waiting_id" value={w.id}/><button className="button primary" disabled={remaining<=0}>{lv?"Pievienot spēlei":"Accept into game"}</button></form></article>})}
+      {waiting?.map((w:any,index:number)=>{const profile:any=first(w.profile);return <article className="applicant" key={w.id}><div><Link href={`/users/${w.user_id}`}><strong>#{index+1} · {profile?.display_name??"Player"}</strong></Link></div><form action={promoteWaitingUser} className="application-actions"><input type="hidden" name="game_id" value={id}/><input type="hidden" name="waiting_id" value={w.id}/>{activity?.supports_teams&&<select name="team_id" defaultValue=""><option value="">{lv?"Bez komandas":"No team"}</option>{teams.map((team:any)=><option key={team.id} value={team.id}>{team.name}</option>)}</select>}{activity?.supports_positions&&<select name="position_id" defaultValue=""><option value="">{lv?"Bez pozīcijas":"No position"}</option>{positions.map((pos:any)=><option key={pos.id} value={pos.id}>{lv?pos.name_lv:pos.name_en}</option>)}</select>}<button className="button primary" disabled={remaining<=0}>{lv?"Pievienot spēlei":"Accept into game"}</button></form></article>})}
       {!waiting?.length&&<p>{lv?"Neviens negaida.":"No one is waiting."}</p>}
     </div></section>
 
@@ -127,7 +127,7 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
     </section>
 
     <section className="panel"><h2>{lv?"Apstiprinātie":"Confirmed"}</h2><div className="stack">
-      {participants?.map((p:any)=>{const profile:any=first(p.profile);const pos:any=first(p.position);return <div className="participant-manage" key={p.id}><div><Link href={`/users/${p.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link><span className="hint">{pos?(lv?pos.name_lv:pos.name_en):""}</span></div>{activity?.supports_teams&&<form action={assignParticipantTeam} className="inline-form"><input type="hidden" name="game_id" value={id}/><input type="hidden" name="user_id" value={p.user_id}/><select name="team_id" defaultValue={p.team_id??""}><option value="">{lv?"Bez komandas":"No team"}</option>{teams.map((team:any)=><option key={team.id} value={team.id}>{team.name}</option>)}</select><button className="button ghost" type="submit">{lv?"Saglabāt":"Save"}</button></form>}</div>})}
+      {participants?.map((p:any)=>{const profile:any=first(p.profile);const pos:any=first(p.position);return <div className="participant-manage" key={p.id}><div><Link href={`/users/${p.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link><span className="hint">{pos?(lv?pos.name_lv:pos.name_en):""}</span></div><form action={updateParticipantAssignment} className="inline-form"><input type="hidden" name="game_id" value={id}/><input type="hidden" name="user_id" value={p.user_id}/>{activity?.supports_teams&&<select name="team_id" defaultValue={p.team_id??""}><option value="">{lv?"Bez komandas":"No team"}</option>{teams.map((team:any)=><option key={team.id} value={team.id}>{team.name}</option>)}</select>}{activity?.supports_positions&&<select name="position_id" defaultValue={p.position_id??""}><option value="">{lv?"Bez pozīcijas":"No position"}</option>{positions.map((position:any)=><option key={position.id} value={position.id}>{lv?position.name_lv:position.name_en}</option>)}</select>}<button className="button ghost" type="submit">{lv?"Saglabāt":"Save"}</button></form><form action={removeParticipant}><input type="hidden" name="game_id" value={id}/><input type="hidden" name="user_id" value={p.user_id}/><button className="button danger" type="submit">{lv?"Noņemt":"Remove"}</button></form></div>})}
       {!participants?.length&&<p>{lv?"Vēl nav apstiprinātu spēlētāju.":"No confirmed players yet."}</p>}
     </div></section>
   </div>;

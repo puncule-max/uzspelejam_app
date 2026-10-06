@@ -19,8 +19,9 @@ export default async function NotificationsPage() {
     price_changed:"Mainījās cena",
     booking_status_changed:"Mainījās rezervācijas statuss",
     new_player:"Pievienojās jauns spēlētājs",
+    participant_removed:"Tu vairs neesi spēles dalībnieks",
   } : {
-    application_received:"New join request",application_accepted:"You’re in",application_declined:"Request declined",spot_available:"A spot just opened up",fully_booked:"Game is fully booked",waiting_list_promoted:"You’re in from the waiting list",game_cancelled:"Game cancelled",date_changed:"Date changed",time_changed:"Time changed",venue_changed:"Venue changed",price_changed:"Price changed",booking_status_changed:"Booking status changed",new_player:"New player joined"
+    application_received:"New join request",application_accepted:"You’re in",application_declined:"Request declined",spot_available:"A spot just opened up",fully_booked:"Game is fully booked",waiting_list_promoted:"You’re in from the waiting list",game_cancelled:"Game cancelled",date_changed:"Date changed",time_changed:"Time changed",venue_changed:"Venue changed",price_changed:"Price changed",booking_status_changed:"Booking status changed",new_player:"New player joined",participant_removed:"You were removed from the game"
   };
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
