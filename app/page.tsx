@@ -34,6 +34,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const unreadPromise = user ? supabase.from("notifications").select("id",{count:"exact",head:true}).eq("user_id",user.id).is("read_at",null) : Promise.resolve({count:0});
   const { data: games } = await supabase.rpc("list_public_games", {
     p_limit: 50,
     p_query: query || null,
@@ -41,6 +42,8 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
     p_quick: quick || null,
     p_open_only: openOnly,
   });
+
+  const { count: unreadCount } = await unreadPromise;
 
   const quickFilters = [
     { key:"today", label:t.today, href:buildUrl(params,{quick:quick==="today"?null:"today"}) },
@@ -51,7 +54,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   ];
 
   return <div className="page">
-    <header className="topbar"><div><p className="eyebrow">Wanna play, my friend?</p><h1>{process.env.NEXT_PUBLIC_APP_NAME || t.brand}</h1></div><div className="top-actions">{user && <Link className="icon-button notification-link" href="/notifications" aria-label={t.notifications}>●</Link>}{user ? <Link className="text-button" href="/profile">{t.profile}</Link> : <Link className="button ghost" href="/login">{t.signIn}</Link>}</div></header>
+    <header className="topbar"><div><p className="eyebrow">Wanna play, my friend?</p><h1>{process.env.NEXT_PUBLIC_APP_NAME || t.brand}</h1></div><div className="top-actions">{user && <Link className="icon-button notification-link" href="/notifications" aria-label={t.notifications}>{(unreadCount??0)>0?"●":"○"}</Link>}{user ? <Link className="text-button" href="/profile">{t.profile}</Link> : <Link className="button ghost" href="/login">{t.signIn}</Link>}</div></header>
     <section className="hero"><h2>{t.heroTitle}</h2><p>{t.heroBody}</p><div className="hero-actions"><Link className="button primary" href={user ? "/create" : "/login?next=/create"}>{t.createGame}</Link><span className="button ghost">You in?</span></div></section>
 
     <form className="search-form" action="/" method="get">

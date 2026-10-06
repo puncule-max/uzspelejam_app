@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDictionary, getLocale } from "@/lib/i18n";
+import { openNotification, markAllNotificationsRead } from "@/app/notification-actions";
 
 export default async function NotificationsPage() {
   const locale = await getLocale(); const t = getDictionary(locale);
@@ -27,8 +28,8 @@ export default async function NotificationsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/notifications");
   const { data: rows } = await supabase.from("notifications").select("id,type,game_id,payload,read_at,created_at,game:games(activity:activities(name_lv,name_en))").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100);
-  return <div className="page"><p className="eyebrow">{t.notifications}</p><h1>{t.whatChanged}</h1><section className="panel"><div className="stack">
-    {rows?.map((n:any) => {const game=Array.isArray(n.game)?n.game[0]:n.game; const a=Array.isArray(game?.activity)?game.activity[0]:game?.activity; return <Link key={n.id} className="notification-row" href={n.game_id ? `/games/${n.game_id}` : "#"}><div><strong>{labels[n.type] ?? n.type}</strong><p>{locale==="lv"?a?.name_lv:a?.name_en}</p></div><span>{new Intl.DateTimeFormat(locale==="lv"?"lv-LV":"en-GB",{timeZone:"Europe/Riga",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(n.created_at))}</span></Link>})}
+  return <div className="page"><p className="eyebrow">{t.notifications}</p><div className="card-top"><h1>{t.whatChanged}</h1><form action={markAllNotificationsRead}><button className="button ghost" type="submit">{locale==="lv"?"Atzīmēt visu kā izlasītu":"Mark all read"}</button></form></div><section className="panel"><div className="stack">
+    {rows?.map((n:any) => {const game=Array.isArray(n.game)?n.game[0]:n.game; const a=Array.isArray(game?.activity)?game.activity[0]:game?.activity; return <form action={openNotification} key={n.id}><input type="hidden" name="notification_id" value={n.id}/><input type="hidden" name="game_id" value={n.game_id??""}/><button className={`notification-row notification-button ${n.read_at?"":"unread"}`} type="submit"><div><strong>{labels[n.type] ?? n.type}</strong><p>{locale==="lv"?a?.name_lv:a?.name_en}</p></div><span>{new Intl.DateTimeFormat(locale==="lv"?"lv-LV":"en-GB",{timeZone:"Europe/Riga",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(n.created_at))}</span></button></form>})}
     {!rows?.length && <p className="hint">{t.nothingNew}</p>}
   </div></section></div>;
 }
