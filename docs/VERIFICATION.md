@@ -11,6 +11,7 @@ Premium, recurring games, boosted listings, integrated payments, Like and advanc
 - Database smoke test under actual `anon`/`authenticated` roles, with all changes rolled back: age/profile safety, private access, join/accept, capacity, waiting-list promotion, chat RLS, cancellation, ratings and notification read state.
 - Authorized temporary production fixtures: fully booked game renders the accepted count and filled position correctly in LV and EN, without exposing participant identities to guests.
 - Actual production form requests: sign-in for organizer and player, profile/My Games/messages/notifications routes, Create Game, Join and Accept, followed by the accepted-player state and group-chat link.
+- Accepted participant sent a test group message through the production form; the organizer read it. The private-game direct URL returned 404 to guests; a generated invite opened a guest preview and a signed-in player claimed access.
 
 ## Email verification boundary
 
