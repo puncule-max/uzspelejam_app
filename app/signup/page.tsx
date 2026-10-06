@@ -2,15 +2,16 @@ import Link from "next/link";
 import { signUp } from "@/app/auth-actions";
 import { getDictionary, getLocale } from "@/lib/i18n";
 import { safeNext } from "@/lib/auth-navigation";
+import { authErrorMessage } from "@/lib/auth-errors";
 
 export default async function SignupPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
   const locale = await getLocale(); const t = getDictionary(locale);
-  const error = typeof params.error === "string" ? params.error : null;
+  const error = authErrorMessage(typeof params.error === "string" ? params.error : null, locale);
   const next = safeNext(params.next);
   return <div className="page narrow">
     <p className="eyebrow">{t.brand}</p><h1>{t.createProfile}</h1><p className="lead">{t.signupLead}</p>
-    {error && <p className="notice error">{error}</p>}
+    {error && <p className="notice error" role="alert">{error}</p>}
     <form action={signUp} className="wizard">
       <input type="hidden" name="next" value={next}/>
       <label>{t.name}<input name="display_name" required maxLength={80} /></label>

@@ -48,7 +48,7 @@ export async function signUp(formData: FormData) {
   const supabase = await createClient();
   const callback = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
   const { data, error } = await supabase.auth.signUp({email,password,options:{emailRedirectTo:callback,data:{display_name:displayName,birth_date:birthDate,city,language,is_teen:age<18}}});
-  if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+  if (error) redirect(`/signup?error=${encodeURIComponent(error.code === "over_email_send_rate_limit" ? error.code : error.message)}&next=${encodeURIComponent(next)}`);
   if (!data.session) redirect(`/login?message=${encodeURIComponent("Check your email to confirm your account.")}&next=${encodeURIComponent(next)}`);
   redirect(next);
 }
@@ -67,7 +67,7 @@ export async function requestPasswordReset(formData: FormData) {
   const supabase = await createClient();
   const redirectTo = origin + "/auth/callback?next=" + encodeURIComponent("/update-password");
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-  if (error) redirect("/forgot-password?error=" + encodeURIComponent(error.message));
+  if (error) redirect("/forgot-password?error=" + encodeURIComponent(error.code === "over_email_send_rate_limit" ? error.code : error.message));
   redirect("/forgot-password?sent=1");
 }
 
