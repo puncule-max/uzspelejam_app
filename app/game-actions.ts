@@ -51,7 +51,15 @@ export async function createGame(formData: FormData) {
   const paid = asString(formData.get("payment_method")) !== "free";
   const totalCost = paid ? Number(asString(formData.get("total_cost")) || 0) : 0;
 
-  const { data, error } = await supabase.rpc("create_game", {
+  const positionRequirements: Record<string, number> = {};
+  for (const [key, raw] of formData.entries()) {
+    if (!key.startsWith("position_requirement_")) continue;
+    const positionId = key.slice("position_requirement_".length);
+    const count = Number(String(raw ?? "0"));
+    if (positionId && Number.isInteger(count) && count > 0) positionRequirements[positionId] = count;
+  }
+
+  const { data, error } = await supabase.rpc("create_game_with_requirements", {
     p_activity_id: activityId,
     p_mode: mode,
     p_starts_at: startsAt,
@@ -68,6 +76,7 @@ export async function createGame(formData: FormData) {
     p_venue_booked: mode === "physical" ? asString(formData.get("venue_booked")) === "true" : null,
     p_cancellation_policy_minutes: Number(asString(formData.get("cancellation_policy_minutes")) || 0),
     p_description: asString(formData.get("description")) || null,
+    p_position_requirements: positionRequirements,
   });
   if (error) redirect(`/create?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/");
