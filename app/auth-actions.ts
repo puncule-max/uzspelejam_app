@@ -10,6 +10,11 @@ function requireString(value: FormDataEntryValue | null, name: string) {
   return result;
 }
 
+function safeNext(value: FormDataEntryValue | null) {
+  const next = String(value ?? "/").trim();
+  return next.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
+
 function ageOn(dateString: string) {
   const birth = new Date(`${dateString}T00:00:00Z`);
   const now = new Date();
@@ -22,11 +27,11 @@ function ageOn(dateString: string) {
 export async function signIn(formData: FormData) {
   const email = requireString(formData.get("email"), "Email");
   const password = requireString(formData.get("password"), "Password");
-  const next = String(formData.get("next") ?? "/");
+  const next = safeNext(formData.get("next"));
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
-  redirect(next.startsWith("/") ? next : "/");
+  redirect(next);
 }
 
 export async function signUp(formData: FormData) {
@@ -36,16 +41,18 @@ export async function signUp(formData: FormData) {
   const birthDate = requireString(formData.get("birth_date"), "Birth date");
   const city = String(formData.get("city") ?? "").trim();
   const language = String(formData.get("language") ?? "lv") === "en" ? "en" : "lv";
+  const next = safeNext(formData.get("next"));
   const age = ageOn(birthDate);
-  if (!Number.isFinite(age) || age < 16) redirect(`/signup?error=${encodeURIComponent("You must be at least 16 years old.")}`);
+  if (!Number.isFinite(age) || age < 16) redirect(`/signup?error=${encodeURIComponent("You must be at least 16 years old.")}&next=${encodeURIComponent(next)}`);
 
   const headerStore = await headers();
   const origin = headerStore.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({email,password,options:{emailRedirectTo:`${origin}/auth/callback`,data:{display_name:displayName,birth_date:birthDate,city,language,is_teen:age<18}}});
-  if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}`);
-  if (!data.session) redirect("/login?message=Check%20your%20email%20to%20confirm%20your%20account.");
-  redirect("/");
+  const callback = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
+  const { data, error } = await supabase.auth.signUp({email,password,options:{emailRedirectTo:callback,data:{display_name:displayName,birth_date:birthDate,city,language,is_teen:age<18}}});
+  if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+  if (!data.session) redirect(`/login?message=${encodeURIComponent("Check your email to confirm your account.")}&next=${encodeURIComponent(next)}`);
+  redirect(next);
 }
 
 export async function signOut() {

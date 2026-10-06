@@ -4,12 +4,14 @@ import { signUp } from "@/app/auth-actions";
 export default async function SignupPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
   const error = typeof params.error === "string" ? params.error : null;
+  const next = typeof params.next === "string" && params.next.startsWith("/") && !params.next.startsWith("//") ? params.next : "/";
   return <div className="page narrow">
     <p className="eyebrow">Uzspēlējam?</p>
     <h1>Create your profile</h1>
     <p className="lead">16+ · LV/ENG · private profile by default.</p>
     {error && <p className="notice error">{error}</p>}
     <form action={signUp} className="wizard">
+      <input type="hidden" name="next" value={next}/>
       <label>Name<input name="display_name" required maxLength={80} /></label>
       <label>Email<input name="email" type="email" autoComplete="email" required /></label>
       <label>Password<input name="password" type="password" autoComplete="new-password" required minLength={6} /></label>
@@ -18,6 +20,6 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
       <label>Language<select name="language" defaultValue="lv"><option value="lv">Latviešu</option><option value="en">English</option></select></label>
       <button className="button primary wide" type="submit">Create account</button>
     </form>
-    <p className="hint">Already registered? <Link href="/login">Sign in</Link></p>
+    <p className="hint">Already registered? <Link href={`/login?next=${encodeURIComponent(next)}`}>Sign in</Link></p>
   </div>;
 }
