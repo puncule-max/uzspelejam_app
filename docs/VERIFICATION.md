@@ -17,7 +17,7 @@ Premium, recurring games, boosted listings, integrated payments, Like and advanc
 
 ## Email verification boundary
 
-Production signup and password-reset form requests succeeded. Supabase recorded confirmation and recovery sending timestamps. These results prove the application's handoff to Auth, not receipt in the external mailbox or successful consumption of the emailed links. Recipient-side confirmation and link completion remain required before claiming the entire email flow is verified.
+Production signup and password-reset form requests succeeded. Supabase recorded confirmation and recovery sending timestamps. These results prove the application's handoff to Auth, not receipt in the external mailbox or successful consumption of the emailed links. The recipient received the signup message and clicked its link. Auth recorded email confirmation at 2026-10-06 11:05:50 UTC, but the browser was redirected to localhost because the provider Site URL and redirect allow list had not been configured. Password recovery completion remains pending.
 
 ## Repeating checks
 
@@ -30,3 +30,11 @@ After the authorized game-flow checks, all three synthetic game-test accounts we
 ## Provider configuration follow-up
 
 Supabase's final security advisor reported `auth_leaked_password_protection`: leaked-password checking is disabled. This is an Auth configuration follow-up, not a table RLS failure. The application enforces eight-character passwords on signup/reset; provider-level leaked-password checking requires the appropriate Supabase plan and Auth setting. See [Supabase password security](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). No paid plan was enabled as part of verification.
+
+## Auth URL configuration correction
+
+On 2026-10-06 the production Supabase dashboard still showed `http://localhost:3000` as Site URL and an empty redirect allow list. The authorized browser session changed Site URL to `https://uzspelejam-app-prod.vercel.app`, added exact profile/recovery callback URLs and the same callback path with `?next=**` for safe application return paths. The application already sanitizes `next` through `safeNext`; other origins and other callback paths are not allowed.
+
+Live Auth requests with intentionally invalid signup/recovery tokens returned HTTP 303 to the production `/auth/callback`, preserving `/profile` and `/update-password`. An arbitrary game return path and a foreign-origin rejection were checked separately. These probes verify redirect configuration, not successful fresh-token session establishment. Existing emails embed their original redirect and should be replaced by a fresh request from the browser that will open the email link, as the default PKCE flow depends on that browser's verifier cookie.
+
+The dashboard confirmed the default Supabase email service is in use. Template editing requires custom SMTP or a paid plan. SMTP setup and a real password-recovery completion remain release follow-ups; no subscription or email-provider purchase was made.
