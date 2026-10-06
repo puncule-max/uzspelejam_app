@@ -86,7 +86,7 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
       {applications?.map((a:any)=>{
         const profile:any=first(a.profile); const requested:any=first(a.requested_position);
         return <article className="applicant" key={a.id}>
-          <div><Link href={`/users/${p.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link>{requested&&<p className="hint">{lv?"Vēlas":"Prefers"}: {lv?requested.name_lv:requested.name_en}</p>}</div>
+          <div><Link href={`/users/${a.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link>{requested&&<p className="hint">{lv?"Vēlas":"Prefers"}: {lv?requested.name_lv:requested.name_en}</p>}</div>
           <div className="application-actions">
             <form action={acceptApplication} className="inline-form">
               <input type="hidden" name="game_id" value={id}/><input type="hidden" name="application_id" value={a.id}/>
@@ -106,7 +106,7 @@ export default async function ManageGame({params,searchParams}:{params:Promise<{
     </div></section>
 
     <section className="panel"><h2>{lv?"Apstiprinātie":"Confirmed"}</h2><div className="stack">
-      {participants?.map((p:any)=>{const profile:any=first(p.profile);const pos:any=first(p.position);return <div className="applicant" key={p.id}><Link href={`/users/${a.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link><span className="hint">{pos?(lv?pos.name_lv:pos.name_en):""}</span></div>})}
+      {participants?.map((p:any)=>{const profile:any=first(p.profile);const pos:any=first(p.position);return <div className="applicant" key={p.id}><Link href={`/users/${p.user_id}`}><strong>{profile?.display_name??"Player"}</strong></Link><span className="hint">{pos?(lv?pos.name_lv:pos.name_en):""}</span></div>})}
       {!participants?.length&&<p>{lv?"Vēl nav apstiprinātu spēlētāju.":"No confirmed players yet."}</p>}
     </div></section>
   </div>;
