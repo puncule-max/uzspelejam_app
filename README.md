@@ -1,24 +1,37 @@
 # Uzspēlējam?
 
-Mobile-first matchmaking app for games and sports where another participant, partner, opponent or team is required.
+Mobile-first matchmaking web app for games and sports where another participant, partner, opponent or team is required.
 
-## Current MVP slice
+## MVP status
 
-- Supabase email/password Auth
-- automatic profile creation
-- 16+ signup validation
-- Latvia-first activity and position catalogue
-- Explore backed by Supabase
-- Create Game through transactional RPC
-- Join request with organizer approval
-- organizer Accept / Decline
-- Fully booked → Waiting List
-- waiting-list promotion when a place opens
-- Follow / Unfollow
-- Leave game / withdraw request / leave waiting list
-- My Games states
-- central `GameAccessContext` resolver (`user_game_state + available_actions`)
-- Row Level Security on exposed tables
+Implemented:
+
+- Supabase email/password auth, email confirmation and password recovery
+- automatic profile creation and 16+ enforcement
+- Teen Safety: under-18 profiles are forced private at database level
+- runtime LV/EN locale switching
+- Latvia-first activity catalogue; solo-only activities are excluded
+- activity skill preferences and preferred sport positions
+- Explore search, quick filters and advanced filters
+- Create Game for physical/online games
+- public/private games and tokenized private invites
+- Join request with organizer approval/decline
+- activity-specific positions and organizer position requirements
+- team sports with Team A / Team B assignment
+- Fully booked → Waiting List → organizer promotion
+- Follow / Unfollow with configurable notification triggers
+- game edit/cancel with participant/follower change notifications
+- participant leave/remove with capacity reopening notifications
+- application chat and accepted-player group chat
+- My Games states: hosting, joined, pending, waiting, following, past
+- in-app Notification Center with unread/read state
+- public/private user profiles and reputation
+- post-game 1–5 ratings + Reliable/Friendly/Good teammate/Fair player tags
+- Report / Block safety flows
+- Share CTA for public games
+- central `GameAccessContext` resolver and domain tests
+- Row Level Security and explicit transactional RPC commands for critical state changes
+- production deployment on Vercel
 
 ## Stack
 
@@ -26,7 +39,7 @@ Mobile-first matchmaking app for games and sports where another participant, par
 - Supabase Auth + PostgreSQL
 - Vercel
 
-## Local setup
+## Local verification
 
 Copy `.env.example` to `.env.local` and fill the Supabase URL and publishable key.
 
@@ -34,14 +47,19 @@ Copy `.env.example` to `.env.local` and fill the Supabase URL and publishable ke
 npm ci
 npm run test:domain
 npm run typecheck
+npm run build
 npm run dev
 ```
 
 ## Database
 
-Schema source is under `supabase/migrations/`.
+Schema history is under `supabase/migrations/`.
 
-Critical state changes are exposed as explicit RPC commands instead of generic client-side CRUD. Capacity-sensitive operations lock the game row before accepting or promoting a player.
+Capacity-sensitive operations lock the game row. Critical writes (accept, promote, leave, participant removal, edit/cancel, follow preferences, ratings) use explicit RPC commands rather than generic client-side CRUD.
+
+## Production configuration
+
+For production email confirmation/password recovery, Supabase Auth must allow the production callback URL and production-grade SMTP should be configured. In-app notifications are implemented. Native/browser push delivery is intentionally separate from the core web MVP and requires push-provider credentials.
 
 ## Brand
 
