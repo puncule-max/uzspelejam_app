@@ -15,7 +15,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
   const error = typeof sp.error === "string" ? sp.error : null;
   const data = await getGameDetails(id);
   if (!data) notFound();
-  const { game, user, access, acceptedCount, conversationId } = data;
+  const { game, user, access, acceptedCount, conversationId, positionOptions } = data;
   if (!access.permissions.canViewGame) notFound();
   const activity = locale === "lv" ? game.activity?.name_lv : game.activity?.name_en;
   const location = game.mode === "online" ? `Online · ${game.online_platform}` : [game.custom_location, game.city].filter(Boolean).join(" · ");
@@ -30,7 +30,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
       <h1>{missingTitle}</h1>
       <p className="lead">{acceptedCount} {t.confirmed} · {skillLabel(game.required_skill_levels,locale)}</p>
       {actionTypes.has("sign_in") && <Link className="button primary wide" href={`/login?next=/games/${id}`}>{t.signInToJoin}</Link>}
-      {actionTypes.has("join") && <form action={joinGame}><HiddenGame id={id}/><button className="button primary wide" type="submit">{t.join}</button></form>}
+      {actionTypes.has("join") && <form action={joinGame} className="join-form"><HiddenGame id={id}/>{game.activity?.supports_positions&&positionOptions.length>0&&<label>{locale==="lv"?"Vēlamā pozīcija":"Preferred position"}<select name="position_id" defaultValue=""><option value="">{locale==="lv"?"Nav preferences":"No preference"}</option>{positionOptions.map((p:any)=><option key={p.id} value={p.id}>{locale==="lv"?p.name_lv:p.name_en}{p.required_count>0?` · ${p.remaining_count} ${locale==="lv"?"vēl vajag":"still needed"}`:""}</option>)}</select></label>}<button className="button primary wide" type="submit">{t.join}</button></form>}
       {actionTypes.has("join_waiting_list") && <form action={joinWaitingList}><HiddenGame id={id}/><button className="button primary wide" type="submit">{t.joinWaitingList}</button></form>}
       {access.userGameState === "pending" && <div className="status-box"><strong>{t.requestPending}</strong></div>}
       {access.userGameState === "waiting_list" && <div className="status-box"><strong>{t.waitingStatus}</strong>{access.waitingListPosition && <span>{locale==="lv" ? `Tava vieta: #${access.waitingListPosition}` : `Your position: #${access.waitingListPosition}`}</span>}</div>}
@@ -53,6 +53,7 @@ export default async function GameDetails({ params, searchParams }: { params: Pr
       <article className="panel"><h3>{t.level}</h3><p>{skillLabel(game.required_skill_levels,locale)}</p></article>
       <article className="panel"><h3>{t.cost}</h3><p>{game.payment_method === "free" ? t.free : `€${Number(game.total_cost).toFixed(2)}`}</p></article>
     </section>
+    {game.activity?.supports_positions&&positionOptions.some((p:any)=>p.required_count>0)&&<section className="panel"><h2>{locale==="lv"?"Vajadzīgās pozīcijas":"Positions needed"}</h2><div className="stack">{positionOptions.filter((p:any)=>p.required_count>0).map((p:any)=><div className="position-status" key={p.id}><strong>{locale==="lv"?p.name_lv:p.name_en}</strong><span>{p.accepted_count}/{p.required_count} · {p.remaining_count>0?`${p.remaining_count} ${locale==="lv"?"vēl vajag":"still needed"}`:(locale==="lv"?"Nokomplektēts":"Filled")}</span></div>)}</div></section>}
     <section className="panel"><h2>{t.gameDetails}</h2><p>{game.description || "—"}</p><p>{game.venue_booked === true ? (locale==="lv"?"Vieta rezervēta ✓":"Venue booked ✓") : game.venue_booked === false ? (locale==="lv"?"Vieta vēl nav rezervēta":"Venue not booked yet") : ""}</p></section>
     <section className="panel"><h2>{t.yourStatus}</h2><p><strong>{access.userGameState.replaceAll("_", " ")}</strong></p></section>
     {user && user.id !== game.creator_id && <section className="panel">
