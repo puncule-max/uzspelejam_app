@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getLocale } from "@/lib/i18n";
 import { updateGameDetails } from "@/app/game-admin-actions";
+import { CancellationPolicyField } from "@/components/cancellation-policy-field";
 
 function rigaParts(value:string){
   const parts=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{
@@ -45,7 +46,7 @@ export default async function EditGamePage({params,searchParams}:{params:Promise
       <label>{lv?"Kopējā cena (€)":"Total cost (€)"}<input type="number" min="0" step="0.01" name="total_cost" defaultValue={Number(game.total_cost??0)}/></label>
       <label>{lv?"Vai organizators sedz arī savu daļu?":"Does the organizer pay their own share?"}<select name="organizer_share_included" defaultValue={game.organizer_share_included===false?"false":"true"}><option value="true">{lv?"Jā":"Yes"}</option><option value="false">{lv?"Nē":"No"}</option></select></label>
       {game.payment_method!=="free"&&Number(game.total_cost)>0&&<p className="hint">≈ €{(Number(game.total_cost)/Math.max(1,Number(game.additional_players_required)+(game.organizer_share_included===false?0:1))).toFixed(2)} {lv?"uz spēlētāju pēc pašreizējā sadalījuma":"per player with the current split"}</p>}
-      <label>{lv?"Bezmaksas atcelšana līdz":"Free cancellation until"}<select name="cancellation_policy_minutes" defaultValue={String(game.cancellation_policy_minutes??0)}><option value="0">{lv?"Jebkurā laikā":"Anytime"}</option><option value="60">1 h</option><option value="180">3 h</option><option value="360">6 h</option><option value="720">12 h</option><option value="1440">24 h</option></select></label>
+      <CancellationPolicyField locale={locale} currentMinutes={game.cancellation_policy_minutes} label={lv?"Bezmaksas atcelšana līdz":"Free cancellation until"}/>
       <label>{lv?"Piezīmes":"Notes"}<textarea name="description" rows={4} maxLength={2000} defaultValue={game.description??""}/></label>
       <button className="button primary wide" type="submit">{lv?"Saglabāt izmaiņas":"Save changes"}</button>
     </form>

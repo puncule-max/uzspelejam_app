@@ -20,14 +20,15 @@ Implemented:
 - team sports with Team A / Team B assignment
 - Fully booked → Waiting List → organizer promotion
 - Follow / Unfollow with configurable notification triggers
-- game edit/cancel with participant/follower change notifications
-- participant leave/remove with capacity reopening notifications
+- game edit/cancel with participant/follower change notifications and custom cancellation windows
+- participant leave/remove with capacity reopening notifications and late-cancellation tracking
 - application chat and accepted-player group chat
 - My Games states: hosting, joined, pending, waiting, following, past
-- in-app Notification Center with unread/read state
-- public/private user profiles and reputation
+- in-app Notification Center with unread/read state and Realtime toast updates
+- public/private user profiles, avatar upload and reputation
 - post-game 1–5 ratings + Reliable/Friendly/Good teammate/Fair player tags
 - Report / Block safety flows
+- total and per-player cost display with organizer cost split
 - Share CTA for public games
 - central `GameAccessContext` resolver and domain tests
 - Row Level Security and explicit transactional RPC commands for critical state changes

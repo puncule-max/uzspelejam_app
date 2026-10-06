@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { createGame } from "@/app/game-actions";
+import { CancellationPolicyField } from "@/components/cancellation-policy-field";
 
 type Activity={
   id:string;
@@ -140,11 +141,7 @@ export function CreateGameForm({
       {totalCost>0&&<p className="hint">≈ €{perPlayer.toFixed(2)} · {labels.perPlayer}</p>}
     </>}
 
-    <label>{labels.cancellation}<select name="cancellation_policy_minutes" defaultValue="180">
-      <option value="0">{labels.anytime}</option>
-      <option value="60">1 h</option><option value="180">3 h</option><option value="360">6 h</option>
-      <option value="720">12 h</option><option value="1440">24 h</option>
-    </select></label>
+    <CancellationPolicyField locale={locale} label={labels.cancellation}/>
 
     <label>{labels.visibility}<select name="visibility" defaultValue="public">
       <option value="public">{labels.public}</option><option value="private">{labels.private}</option>
