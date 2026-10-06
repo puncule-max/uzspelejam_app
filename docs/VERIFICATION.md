@@ -17,7 +17,7 @@ Premium, recurring games, boosted listings, integrated payments, Like and advanc
 
 ## Email verification boundary
 
-Initial production signup and password-reset form requests succeeded, but the first confirmed signup redirected to localhost because the provider URLs were not configured. That provider configuration was subsequently corrected. On 2026-10-06 Resend verified `uzspelejam.lv`, and custom SMTP was saved in Supabase. The recipient completed password recovery, reached the profile page, then explicitly confirmed successful sign-out and fresh sign-in using the new password. Auth recorded a sign-in at 13:51:22 UTC. Mailbox delivery and password recovery are therefore verified on the original Vercel production host. A fresh real email flow on the custom domain remains to be checked.
+Initial production signup and password-reset form requests succeeded, but the first confirmed signup redirected to localhost because the provider URLs were not configured. That provider configuration was subsequently corrected. On 2026-10-06 Resend verified `uzspelejam.lv`, and custom SMTP was saved in Supabase. The recipient completed password recovery, reached the profile page, then explicitly confirmed successful sign-out and fresh sign-in using the new password. This check was repeated on `uzspelejam.lv`; the recipient confirmed that password change and fresh sign-in both succeeded. Auth recorded the subsequent sign-in at 14:02:16 UTC. Real mailbox delivery and password recovery are verified on both production hosts. Fresh custom-domain signup through Resend remains a distinct flow to check when creating the permanent account.
 
 ## Repeating checks
 
@@ -25,7 +25,7 @@ Run `npm run test:domain`, `npm run test:auth`, `npm run typecheck`, and `npm ru
 
 Persistent production fixtures require explicit authorization, isolated test accounts, and cleanup of their games, storage objects and Auth sessions/users after verification. Never delete existing real accounts to perform these checks.
 
-After the authorized game-flow checks, all three synthetic game-test accounts were signed out and deleted together with their three games. Database checks confirmed zero remaining fixture accounts, games and sessions. The separate mailbox-verification account remains pending completion of the external email-link tests and will be deleted after that boundary is checked.
+After the authorized game-flow checks, all three synthetic game-test accounts were signed out and deleted together with their three games. Database checks confirmed zero remaining fixture accounts, games and sessions. After the recipient completed custom-domain recovery and fresh sign-in, the separate mailbox-verification account was also removed under the original temporary-test authorization. Before removal, checks confirmed it had no created games, applications, participations, messages, or storage objects. Its refresh tokens and sessions were removed before deleting the Auth user; follow-up checks confirmed zero remaining Auth users, sessions and profile rows for that exact fixture ID. The local temporary credential/cookie file was also removed. The recipient can now register a permanent account with the same mailbox.
 
 ## Provider configuration follow-up
 
